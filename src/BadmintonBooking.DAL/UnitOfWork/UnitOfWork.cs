@@ -14,6 +14,8 @@ public class UnitOfWork : IUnitOfWork
     private IRepository<Court>? _courts;
     private IRepository<TimeSlot>? _timeSlots;
     private IRepository<Booking>? _bookings;
+    private IRepository<Wallet>? _wallets;
+    private IRepository<WalletTransaction>? _walletTransactions;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -25,6 +27,8 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Court> Courts => _courts ??= new Repository<Court>(_context);
     public IRepository<TimeSlot> TimeSlots => _timeSlots ??= new Repository<TimeSlot>(_context);
     public IRepository<Booking> Bookings => _bookings ??= new Repository<Booking>(_context);
+    public IRepository<Wallet> Wallets => _wallets ??= new Repository<Wallet>(_context);
+    public IRepository<WalletTransaction> WalletTransactions => _walletTransactions ??= new Repository<WalletTransaction>(_context);
 
     public async Task<int> SaveChangesAsync()
     {
@@ -60,6 +64,6 @@ public class UnitOfWork : IUnitOfWork
     {
         _transaction?.Dispose();
         _context.Dispose();
+        GC.SuppressFinalize(this);
     }
 }
-

@@ -31,6 +31,29 @@ public class Facility
 
     public string? Description { get; set; }
 
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
+    public string? GalleryImagesJson { get; set; }
+
+    [NotMapped]
+    public List<string> GalleryImages
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(GalleryImagesJson)) return new List<string>();
+            try
+            {
+                return System.Text.Json.JsonSerializer.Deserialize<List<string>>(GalleryImagesJson) ?? new List<string>();
+            }
+            catch
+            {
+                return new List<string>();
+            }
+        }
+        set => GalleryImagesJson = System.Text.Json.JsonSerializer.Serialize(value);
+    }
+
     [Required]
     [DataType(DataType.Time)]
     public TimeSpan OpenTime { get; set; }

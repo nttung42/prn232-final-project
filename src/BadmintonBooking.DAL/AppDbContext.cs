@@ -15,6 +15,8 @@ public class AppDbContext : DbContext
     public DbSet<Court> Courts => Set<Court>();
     public DbSet<TimeSlot> TimeSlots => Set<TimeSlot>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Wallet> Wallets => Set<Wallet>();
+    public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -87,6 +89,33 @@ public class AppDbContext : DbContext
             entity.Property(b => b.TotalPrice).HasPrecision(18, 2);
             entity.Property(b => b.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
         });
+
+        // Wallet config
+        modelBuilder.Entity<Wallet>(entity =>
+        {
+            entity.HasOne(w => w.User)
+                  .WithOne(u => u.Wallet)
+                  .HasForeignKey<Wallet>(w => w.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(w => w.UserId).IsUnique();
+            entity.Property(w => w.Balance).HasPrecision(18, 2).HasDefaultValue(0);
+            entity.Property(w => w.UpdatedAt).HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        // WalletTransaction config
+        modelBuilder.Entity<WalletTransaction>(entity =>
+        {
+            entity.HasOne(t => t.Wallet)
+                  .WithMany(w => w.Transactions)
+                  .HasForeignKey(t => t.WalletId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.Property(t => t.Amount).HasPrecision(18, 2);
+            entity.Property(t => t.TransactionType).HasDefaultValue(WalletTransactionTypes.Deposit);
+            entity.Property(t => t.Status).HasDefaultValue(WalletTransactionStatuses.Pending);
+            entity.Property(t => t.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            entity.HasIndex(t => t.ReferenceCode);
+        });
     }
 }
-

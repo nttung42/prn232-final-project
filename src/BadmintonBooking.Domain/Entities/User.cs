@@ -35,6 +35,7 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
+    public virtual Wallet? Wallet { get; set; }
     public virtual ICollection<Facility> Facilities { get; set; } = new List<Facility>();
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }

@@ -10,10 +10,11 @@ public interface IUnitOfWork : IDisposable
     IRepository<Court> Courts { get; }
     IRepository<TimeSlot> TimeSlots { get; }
     IRepository<Booking> Bookings { get; }
+    IRepository<Wallet> Wallets { get; }
+    IRepository<WalletTransaction> WalletTransactions { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
     Task RollbackTransactionAsync();
 }
-
