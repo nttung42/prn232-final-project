@@ -24,3 +24,4 @@ public class Wallet
     public virtual User? User { get; set; }
     public virtual ICollection<WalletTransaction> Transactions { get; set; } = new List<WalletTransaction>();
 }
+

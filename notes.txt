@@ -1,8 +1,5 @@
-[Missing] Provider & Admin Mobile Responsive Views
-Mặc dù Stitch đã sinh giao diện Mobile cho phân hệ Player (Trang chủ, Tìm kiếm, Lịch đặt), phân hệ Provider và Admin hiện mới chỉ có thiết kế chuẩn Desktop. Cần bổ sung layout Mobile Drawer và responsive table cho các trang quản trị khi truy cập trên thiết bị di động.
-
-[Mismatch] Wallet & Loyalty Points vs Backend Database Schema
-Giao diện Stitch thiết kế tính năng Ví CourtSide (số dư khả dụng, nạp rút tiền) và thẻ thành viên tích điểm (Gold/Platinum). Tuy nhiên cơ sở dữ liệu hiện tại trong đặc tả kỹ thuật PRN232 chưa có bảng Wallets và Transactions. Frontend đã tích hợp mã thanh toán VietQR Napas247 động để dung hòa trải nghiệm; nên cân nhắc bổ sung entity Wallet vào Backend nếu muốn quản lý số dư thực tế.
+[Deferred] Mobile Responsive Views
+Phân hệ quản trị Provider và Admin tạm thời chưa ưu tiên tối ưu giao diện Mobile theo quyết định của dự án, tập trung hoàn thiện tối đa trải nghiệm Web Desktop cho các bảng biểu và ma trận phức tạp.
 
 [Convention] Role-based Authorization and Route Protection
 Hệ thống phân quyền 3 cấp độ đồng bộ giữa Backend JWT Claims và Frontend Client Guard (site-api.js): "Admin" (toàn quyền duyệt cơ sở và quản lý tài khoản), "Provider" (quản lý cơ sở, sân, khung giờ và duyệt đơn), "Player" (tìm kiếm sân, đặt lịch và quản lý lịch sử).
@@ -19,7 +16,3 @@ Frontend sử dụng helper triggerDownload để tải tệp trực tiếp về
 
 [UI/UX Improvement] Live Matrix Peak Hour Highlighting
 Ma trận đặt sân thời gian thực kế thừa thiết kế Stitch với các khung giờ cao điểm (17:00 - 20:00) được gắn nhãn sao vàng (★), nền màu hổ phách (amber-50) và hiển thị giá chênh lệch nhằm giúp người chơi dễ dàng nhận diện ca đông khách.
-
-[Missing] Multi-image Facility Gallery Upload
-Thiết kế Stitch có khu vực thư viện ảnh tiện ích chi tiết (thảm thi đấu, pro shop, phòng thay đồ). Backend hiện tại chỉ lưu trữ một trường ImageUrl đại diện cho cơ sở. Cần mở rộng bảng FacilityImages hoặc lưu mảng JSON các đường dẫn ảnh để hiển thị đầy đủ bộ sưu tập ảnh sân.
-

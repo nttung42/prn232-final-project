@@ -39,3 +39,4 @@ public class WalletTransaction
     // Navigation property
     public virtual Wallet? Wallet { get; set; }
 }
+

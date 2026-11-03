@@ -7,3 +7,4 @@ public static class WalletTransactionStatuses
     public const string Failed = "Failed";
     public const string Cancelled = "Cancelled";
 }
+

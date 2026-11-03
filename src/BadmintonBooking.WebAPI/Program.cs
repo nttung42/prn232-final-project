@@ -35,6 +35,9 @@ builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<ITimeSlotService, TimeSlotService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IVietQrService, VietQrService>();
+builder.Services.AddScoped<IStorageService, CloudflareR2StorageService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
 
 // 4. AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -162,6 +165,7 @@ if (app.Environment.IsDevelopment() || true) // Enable swagger for testing
 }
 
 app.UseCors("AllowAll");
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();

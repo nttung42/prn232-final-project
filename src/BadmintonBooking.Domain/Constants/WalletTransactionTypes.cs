@@ -7,3 +7,4 @@ public static class WalletTransactionTypes
     public const string BookingPayment = "BookingPayment";
     public const string BookingRefund = "BookingRefund";
 }
+

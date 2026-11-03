@@ -12,6 +12,8 @@ public class FacilityDto
     public string District { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
+    public List<string> GalleryImages { get; set; } = new();
     public TimeSpan OpenTime { get; set; }
     public TimeSpan CloseTime { get; set; }
     public string Status { get; set; } = "Pending";
@@ -40,6 +42,11 @@ public class CreateFacilityDto
 
     public string? Description { get; set; }
 
+    [MaxLength(500)]
+    public string? ImageUrl { get; set; }
+
+    public List<string> GalleryImages { get; set; } = new();
+
     [Required]
     public TimeSpan OpenTime { get; set; }
 
@@ -57,4 +64,3 @@ public class UpdateFacilityStatusDto
     [RegularExpression("^(Approved|Rejected|Suspended)$", ErrorMessage = "Trạng thái phê duyệt phải là Approved, Rejected hoặc Suspended")]
     public string Status { get; set; } = string.Empty;
 }
-

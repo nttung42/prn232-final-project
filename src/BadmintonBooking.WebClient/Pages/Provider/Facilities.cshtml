@@ -82,6 +82,19 @@
                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none"></textarea>
             </div>
 
+            <!-- Upload Ảnh bìa cơ sở (Cloudflare R2 Bucket: prn232_bucket) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ảnh bìa cơ sở (Cloudflare R2)</label>
+                <div class="flex items-center gap-3">
+                    <input type="file" id="facImageFile" accept="image/*" onchange="uploadFacilityImage(this)"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#00685f] file:text-white" />
+                </div>
+                <input type="hidden" id="facImageUrl" />
+                <div id="imagePreviewBox" class="mt-2 hidden">
+                    <img id="imagePreview" src="" class="w-full h-28 object-cover rounded-xl border border-slate-200" alt="Preview ảnh" />
+                </div>
+            </div>
+
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
                 <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Hủy</button>
                 <button type="submit" id="btnSaveFacility" class="bg-[#00685f] hover:bg-[#008378] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md">Lưu thông tin</button>
@@ -163,6 +176,8 @@
     function openCreateModal() {
         document.getElementById("modalTitle").textContent = "Thêm cơ sở mới";
         document.getElementById("facilityIdInput").value = "";
+        document.getElementById("facImageUrl").value = "";
+        document.getElementById("imagePreviewBox").classList.add("hidden");
         document.getElementById("facilityForm").reset();
         document.getElementById("facilityModal").classList.remove("hidden");
         document.getElementById("facilityModal").classList.add("flex");
@@ -178,6 +193,15 @@
         document.getElementById("facOpenTime").value = formatTime(f.openTime);
         document.getElementById("facCloseTime").value = formatTime(f.closeTime);
         document.getElementById("facDescription").value = f.description || "";
+        document.getElementById("facImageUrl").value = f.imageUrl || "";
+
+        if (f.imageUrl) {
+            document.getElementById("imagePreview").src = f.imageUrl;
+            document.getElementById("imagePreviewBox").classList.remove("hidden");
+        } else {
+            document.getElementById("imagePreviewBox").classList.add("hidden");
+        }
+
         document.getElementById("facilityModal").classList.remove("hidden");
         document.getElementById("facilityModal").classList.add("flex");
     }
@@ -185,6 +209,45 @@
     function closeModal() {
         document.getElementById("facilityModal").classList.add("hidden");
         document.getElementById("facilityModal").classList.remove("flex");
+    }
+
+    async function uploadFacilityImage(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        const formData = new FormData();
+        formData.append("file", file);
+
+        Swal.fire({
+            title: "Đang tải ảnh lên...",
+            text: "Đang tải tệp lên Cloudflare R2 (bucket: prn232_bucket)",
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        try {
+            const res = await callApi("/api/upload/image", {
+                method: "POST",
+                data: formData
+            });
+
+            document.getElementById("facImageUrl").value = res.url;
+            document.getElementById("imagePreview").src = res.url;
+            document.getElementById("imagePreviewBox").classList.remove("hidden");
+
+            Swal.fire({
+                icon: "success",
+                title: "Tải ảnh thành công!",
+                timer: 1200,
+                showConfirmButton: false
+            });
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi tải ảnh",
+                text: err.message || "Không thể tải ảnh lên Cloudflare R2.",
+                confirmButtonColor: "#00685f"
+            });
+        }
     }
 
     document.getElementById("facilityForm").addEventListener("submit", async function (e) {
@@ -197,7 +260,8 @@
             address: document.getElementById("facAddress").value.trim(),
             openTime: document.getElementById("facOpenTime").value + ":00",
             closeTime: document.getElementById("facCloseTime").value + ":00",
-            description: document.getElementById("facDescription").value.trim()
+            description: document.getElementById("facDescription").value.trim(),
+            imageUrl: document.getElementById("facImageUrl").value.trim() || null
         };
 
         try {

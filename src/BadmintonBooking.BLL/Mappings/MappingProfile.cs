@@ -5,6 +5,7 @@ using BadmintonBooking.BLL.DTOs.Courts;
 using BadmintonBooking.BLL.DTOs.Facilities;
 using BadmintonBooking.BLL.DTOs.TimeSlots;
 using BadmintonBooking.BLL.DTOs.Users;
+using BadmintonBooking.BLL.DTOs.Wallet;
 using BadmintonBooking.Domain.Entities;
 
 namespace BadmintonBooking.BLL.Mappings;
@@ -25,9 +26,14 @@ public class MappingProfile : Profile
         CreateMap<Facility, FacilityDto>()
             .ForMember(dest => dest.ProviderName, opt => opt.MapFrom(src => src.Provider != null ? src.Provider.FullName : string.Empty))
             .ForMember(dest => dest.TotalCourts, opt => opt.MapFrom(src => src.Courts != null ? src.Courts.Count : 0))
-            .ForMember(dest => dest.TotalTimeSlots, opt => opt.MapFrom(src => src.TimeSlots != null ? src.TimeSlots.Count : 0));
-        CreateMap<CreateFacilityDto, Facility>();
-        CreateMap<UpdateFacilityDto, Facility>();
+            .ForMember(dest => dest.TotalTimeSlots, opt => opt.MapFrom(src => src.TimeSlots != null ? src.TimeSlots.Count : 0))
+            .ForMember(dest => dest.GalleryImages, opt => opt.MapFrom(src => src.GalleryImages));
+
+        CreateMap<CreateFacilityDto, Facility>()
+            .ForMember(dest => dest.GalleryImagesJson, opt => opt.MapFrom(src => System.Text.Json.JsonSerializer.Serialize(src.GalleryImages, (System.Text.Json.JsonSerializerOptions?)null)));
+
+        CreateMap<UpdateFacilityDto, Facility>()
+            .ForMember(dest => dest.GalleryImagesJson, opt => opt.MapFrom(src => System.Text.Json.JsonSerializer.Serialize(src.GalleryImages, (System.Text.Json.JsonSerializerOptions?)null)));
 
         // Court Mappings
         CreateMap<Court, CourtDto>()
@@ -53,6 +59,12 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.StartTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.StartTime : TimeSpan.Zero))
             .ForMember(dest => dest.EndTime, opt => opt.MapFrom(src => src.TimeSlot != null ? src.TimeSlot.EndTime : TimeSpan.Zero));
         CreateMap<CreateBookingDto, Booking>();
+
+        // Wallet Mappings
+        CreateMap<Wallet, WalletDto>()
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User != null ? src.User.FullName : null))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User != null ? src.User.Email : null));
+
+        CreateMap<WalletTransaction, WalletTransactionDto>();
     }
 }
-
