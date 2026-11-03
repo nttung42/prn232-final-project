@@ -1,0 +1,428 @@
+@page
+@{
+    ViewData["Title"] = "Chi tiết Cụm sân & Đặt lịch";
+}
+
+<div class="flex flex-col w-full -mt-4">
+    <!-- Breadcrumb Navigation -->
+    <div class="w-full px-6 py-3 bg-white border-b border-slate-100 shadow-xs">
+        <div class="max-w-7xl mx-auto flex items-center gap-1.5 text-slate-500 text-xs">
+            <a href="/" class="hover:text-[#00685f] transition-colors flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">home</span>
+                <span>Trang chủ</span>
+            </a>
+            <span class="material-symbols-outlined text-[14px] text-slate-300">chevron_right</span>
+            <a href="/Player/Facilities" class="hover:text-[#00685f] transition-colors">Danh sách sân</a>
+            <span class="material-symbols-outlined text-[14px] text-slate-300">chevron_right</span>
+            <span class="text-slate-800 font-bold" id="breadFacilityName">Đang tải...</span>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto w-full px-6 py-8 flex flex-col gap-8">
+        <!-- Facility Hero Showcase & Gallery -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <!-- Large Featured Image -->
+            <div class="lg:col-span-8 relative rounded-3xl overflow-hidden shadow-lg h-[360px] lg:h-[440px] bg-slate-200">
+                <div id="facilityBigCover" class="w-full h-full bg-cover bg-center transition-transform duration-500"
+                     style="background-image: url('https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=1200&auto=format&fit=crop')"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent flex flex-col justify-end p-8 text-white">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span class="px-3 py-1 rounded-full bg-[#6df5e1] text-[#004d46] text-[10px] uppercase font-bold flex items-center gap-1 shadow-sm">
+                            <span class="material-symbols-outlined text-[14px]">verified</span>
+                            <span>Chuẩn thi đấu BWF</span>
+                        </span>
+                        <span class="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-bold flex items-center gap-1 shadow-sm">
+                            <span class="material-symbols-outlined text-amber-500 text-[14px]">star</span>
+                            <span>4.9 (240 đánh giá)</span>
+                        </span>
+                    </div>
+                    <h1 class="text-3xl lg:text-4xl font-black text-white tracking-tight" id="facilityTitle">...</h1>
+                    <p class="text-xs text-slate-200 opacity-90 flex items-center gap-1 mt-1" id="facilityFullAddress">
+                        <span class="material-symbols-outlined text-[16px] text-[#6df5e1]">location_on</span>
+                        <span>...</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Side Gallery & Action Buttons -->
+            <div class="lg:col-span-4 flex flex-col gap-4 h-full justify-between">
+                <div class="grid grid-cols-2 gap-3 h-[260px] lg:h-[340px]">
+                    <div class="rounded-2xl overflow-hidden bg-slate-100 shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1613918431703-aa6321c25227?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover" alt="Thảm thi đấu" />
+                    </div>
+                    <div class="rounded-2xl overflow-hidden bg-slate-100 shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover" alt="Sân đa năng" />
+                    </div>
+                    <div class="rounded-2xl overflow-hidden bg-slate-100 shadow-sm">
+                        <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=400&auto=format&fit=crop" class="w-full h-full object-cover" alt="Vợt phụ kiện" />
+                    </div>
+                    <div class="relative rounded-2xl overflow-hidden bg-[#00685f] shadow-sm flex flex-col items-center justify-center text-white p-4 text-center">
+                        <span class="material-symbols-outlined text-[28px]">photo_library</span>
+                        <span class="text-xs font-bold mt-1">Cơ sở chính hãng</span>
+                        <span class="text-[10px] text-emerald-200 mt-0.5">Xác thực bởi CourtSide</span>
+                    </div>
+                </div>
+
+                <div class="bg-white p-3 rounded-2xl shadow-sm border border-slate-100 flex items-center justify-between gap-2">
+                    <button class="flex-1 py-2 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                        <span class="material-symbols-outlined text-[#00685f] text-[16px]">share</span>
+                        <span>Chia sẻ</span>
+                    </button>
+                    <button class="flex-1 py-2 px-2 bg-slate-50 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                        <span class="material-symbols-outlined text-rose-500 text-[16px]">favorite</span>
+                        <span>Lưu lại</span>
+                    </button>
+                    <button class="flex-1 py-2 px-2 bg-[#6df5e1] hover:bg-[#4fdbc8] text-[#004d46] rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition-colors">
+                        <span class="material-symbols-outlined text-[16px]">directions</span>
+                        <span>Chỉ đường</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Facility Specs & Amenities -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-[#00685f] flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">schedule</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Giờ mở cửa</span>
+                    <span class="text-sm font-black text-slate-800" id="specHours">05:00 - 23:00</span>
+                    <span class="text-[11px] text-slate-400 block">Tất cả các ngày</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">payments</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Giá thuê tham khảo</span>
+                    <span class="text-sm font-black text-[#00685f]">80.000đ - 160.000đ</span>
+                    <span class="text-[11px] text-slate-400 block">Theo ca & giờ vàng</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">call</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Hotline hỗ trợ</span>
+                    <span class="text-sm font-black text-slate-800" id="specPhone">0908 123 456</span>
+                    <span class="text-[11px] text-emerald-600 font-semibold block">Hỗ trợ đặt lịch</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">grid_view</span>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block">Chủ sở hữu</span>
+                    <span class="text-sm font-black text-slate-800 truncate block" id="specOwner">Provider</span>
+                    <span class="text-[11px] text-slate-400 block">Đối tác chính thức</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Amenities Badges -->
+        <div class="flex flex-wrap items-center gap-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-xs font-bold text-slate-700 mr-2">Tiện ích sân:</span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
+                <span class="material-symbols-outlined text-[#00685f] text-[16px]">sports_tennis</span>
+                Thảm PVC chuẩn BWF (5mm)
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
+                <span class="material-symbols-outlined text-[#00685f] text-[16px]">ac_unit</span>
+                Máy lạnh toàn phần 25°C
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
+                <span class="material-symbols-outlined text-[#00685f] text-[16px]">wifi</span>
+                Wifi miễn phí
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
+                <span class="material-symbols-outlined text-[#00685f] text-[16px]">local_parking</span>
+                Bãi xe ô tô rộng rãi
+            </span>
+            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
+                <span class="material-symbols-outlined text-[#00685f] text-[16px]">local_drink</span>
+                Căng tin & Thuê vợt
+            </span>
+        </div>
+
+        <!-- Interactive Live Booking Matrix Section -->
+        <div class="bg-white rounded-3xl p-6 md:p-8 shadow-sm border border-slate-200 space-y-6">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-1.5 text-[#00685f] text-[11px] font-bold uppercase tracking-wider mb-1">
+                        <span class="w-2 h-2 rounded-full bg-[#00685f] animate-ping"></span>
+                        <span>Hệ thống đặt lịch tự động</span>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">Ma trận đặt sân thời gian thực</h2>
+                    <p class="text-xs text-slate-500">Nhấp vào ô giờ trống để chọn sân. Giá hiển thị trực tiếp theo ca.</p>
+                </div>
+
+                <!-- Legend Bar -->
+                <div class="flex flex-wrap items-center gap-3 bg-slate-50 p-2.5 px-4 rounded-2xl text-xs text-slate-600 border border-slate-200">
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-emerald-50 border border-emerald-300"></span>
+                        <span>Trống</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-[#00685f]"></span>
+                        <span class="font-bold text-[#00685f]">Đang chọn</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-slate-200 border border-slate-300"></span>
+                        <span class="text-slate-400">Đã đặt</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span class="w-3.5 h-3.5 rounded bg-amber-100 text-amber-800 font-bold text-[10px] flex items-center justify-center">★</span>
+                        <span class="text-amber-800 font-medium">Giờ vàng</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Horizontal Date Selector -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-2" id="dateSelectorBar">
+                <!-- Sẽ được sinh tự động bởi JavaScript (7 ngày kế tiếp) -->
+            </div>
+
+            <!-- Matrix Grid Container -->
+            <div class="overflow-x-auto">
+                <div id="liveMatrixTable" class="min-w-[750px]">
+                    <div class="py-12 text-center text-slate-400 text-xs">
+                        <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                        <p class="mt-2">Đang tải tình trạng sân...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sticky Bottom Summary Bar -->
+            <div id="stickyCheckoutBar" class="hidden p-6 bg-[#00201d] text-white rounded-2xl shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                        <span class="material-symbols-outlined text-[26px]">sports_tennis</span>
+                    </div>
+                    <div>
+                        <div class="text-xs text-emerald-200/80">Bạn đang chọn:</div>
+                        <div class="text-sm font-black text-white" id="barSlotDetails">Sân 1 - Ca: 17:00 - 18:00</div>
+                        <div class="text-[11px] text-emerald-300" id="barDateDetails">Ngày chơi: 2026-11-10</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="text-[10px] text-emerald-200/70 uppercase font-bold block">Tổng cước</span>
+                        <span class="text-2xl font-black text-[#6df5e1]" id="barTotalPrice">0đ</span>
+                    </div>
+                    <button onclick="goToCheckout()" class="bg-[#00685f] hover:bg-[#008378] text-white px-8 py-3.5 rounded-xl font-bold text-xs shadow-lg shadow-[#00685f]/30 transition-all hover:scale-105 flex items-center gap-2">
+                        <span>Tiến hành Đặt sân</span>
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentFacility = null;
+    let selectedDate = new Date().toISOString().split("T")[0];
+    let selectedCourtId = null;
+    let selectedCourtName = "";
+    let selectedSlotId = null;
+    let selectedSlotName = "";
+    let selectedPrice = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const facilityId = urlParams.get("id");
+
+    function renderDateTabs() {
+        const bar = document.getElementById("dateSelectorBar");
+        const days = ["CN", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"];
+        let html = "";
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() + i);
+            const dateStr = d.toISOString().split("T")[0];
+            const isSelected = (dateStr === selectedDate);
+            const dayLabel = (i === 0) ? "Hôm nay" : days[d.getDay()];
+            const dateDisplay = `${d.getDate()}/${d.getMonth() + 1}`;
+
+            html += `
+                <button type="button" onclick="changeDate('${dateStr}')" 
+                        class="flex flex-col items-center min-w-[110px] px-4 py-2.5 rounded-2xl transition-all text-left shadow-xs ${isSelected ? 'bg-[#00685f] text-white shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200'}">
+                    <span class="text-[10px] ${isSelected ? 'text-emerald-100 font-semibold' : 'text-slate-400'}">${dayLabel}</span>
+                    <span class="text-base font-black">${dateDisplay}</span>
+                    <span class="text-[9px] ${isSelected ? 'text-[#6df5e1]' : 'text-emerald-600'} font-bold">Đặt trực tiếp</span>
+                </button>
+            `;
+        }
+        bar.innerHTML = html;
+    }
+
+    function changeDate(dateStr) {
+        selectedDate = dateStr;
+        renderDateTabs();
+        loadMatrixData();
+    }
+
+    async function loadFacilityDetails() {
+        if (!facilityId) {
+            window.location.href = "/Player/Facilities";
+            return;
+        }
+
+        try {
+            currentFacility = await callApi(`/api/facilities/${facilityId}`);
+            document.getElementById("breadFacilityName").textContent = currentFacility.name;
+            document.getElementById("facilityTitle").textContent = currentFacility.name;
+            document.getElementById("facilityFullAddress").querySelector("span:last-child").textContent = `${currentFacility.address}, ${currentFacility.district}`;
+            document.getElementById("specHours").textContent = `${formatTime(currentFacility.openTime)} - ${formatTime(currentFacility.closeTime)}`;
+            document.getElementById("specPhone").textContent = currentFacility.phone;
+            document.getElementById("specOwner").textContent = currentFacility.providerName || "Chủ sân đối tác";
+
+            if (currentFacility.imageUrl) {
+                document.getElementById("facilityBigCover").style.backgroundImage = `url('${currentFacility.imageUrl}')`;
+            }
+
+            renderDateTabs();
+            loadMatrixData();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    async function loadMatrixData() {
+        const tableDiv = document.getElementById("liveMatrixTable");
+        selectedCourtId = null;
+        selectedSlotId = null;
+        document.getElementById("stickyCheckoutBar").classList.add("hidden");
+
+        tableDiv.innerHTML = `
+            <div class="py-12 text-center text-slate-400 text-xs">
+                <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                <p class="mt-2">Đang tải ma trận sân cho ngày ${formatDate(selectedDate)}...</p>
+            </div>
+        `;
+
+        try {
+            const courts = await callApi(`/api/courts?$filter=FacilityId eq ${facilityId} and Status eq 'Active'`);
+            const slots = await callApi(`/api/timeslots?$filter=FacilityId eq ${facilityId} and IsActive eq true&$orderby=StartTime asc`);
+            const booked = await callApi(`/api/bookings?$filter=PlayDate eq ${selectedDate} and (Status eq 'Confirmed' or Status eq 'Pending')`);
+
+            if (courts.length === 0 || slots.length === 0) {
+                tableDiv.innerHTML = `<div class="py-12 text-center text-slate-400 text-xs">Cơ sở này chưa cấu hình danh sách sân con hoặc khung giờ.</div>`;
+                return;
+            }
+
+            const bookedSet = new Set(booked.map(b => `${b.courtId}_${b.timeSlotId}`));
+
+            let html = `
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-200">
+                            <th class="py-3 px-4 font-bold text-slate-700 rounded-tl-xl w-36">Danh sách Sân</th>
+                            ${slots.map(s => {
+                                const isPeak = (parseInt(s.startTime.substring(0, 2)) >= 17 && parseInt(s.startTime.substring(0, 2)) <= 20);
+                                return `
+                                    <th class="py-3 px-2 font-bold text-slate-700 text-center ${isPeak ? 'bg-amber-50/60 text-amber-900' : ''}">
+                                        <div>${formatTime(s.startTime)} - ${formatTime(s.endTime)} ${isPeak ? '★' : ''}</div>
+                                        <div class="text-[10px] text-slate-400 font-normal">${formatCurrency(s.price)}</div>
+                                    </th>
+                                `;
+                            }).join("")}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+            `;
+
+            courts.forEach(c => {
+                html += `
+                    <tr>
+                        <td class="py-3.5 px-4 font-bold text-slate-800 bg-slate-50/40">
+                            <div>${c.courtName}</div>
+                            <div class="text-[10px] text-slate-400 font-normal">${c.courtType}</div>
+                        </td>
+                `;
+
+                slots.forEach(s => {
+                    const isBooked = bookedSet.has(`${c.id}_${s.id}`);
+                    if (isBooked) {
+                        html += `
+                            <td class="p-1.5 text-center">
+                                <div class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-400 text-[10px] font-semibold cursor-not-allowed">
+                                    Đã đặt
+                                </div>
+                            </td>
+                        `;
+                    } else {
+                        html += `
+                            <td class="p-1.5 text-center">
+                                <button type="button" 
+                                        onclick="pickSlot(${c.id}, '${c.courtName}', ${s.id}, '${s.slotName} (${formatTime(s.startTime)}-${formatTime(s.endTime)})', ${s.price}, this)"
+                                        class="matrix-slot-btn w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#00685f] text-[11px] font-bold border border-emerald-200 transition-all">
+                                    ${formatCurrency(s.price)}
+                                </button>
+                            </td>
+                        `;
+                    }
+                });
+
+                html += `</tr>`;
+            });
+
+            html += `</tbody></table>`;
+            tableDiv.innerHTML = html;
+
+        } catch (err) {
+            tableDiv.innerHTML = `<div class="py-12 text-center text-rose-500 text-xs">Lỗi: ${err.message}</div>`;
+        }
+    }
+
+    function pickSlot(courtId, courtName, slotId, slotName, price, btn) {
+        selectedCourtId = courtId;
+        selectedCourtName = courtName;
+        selectedSlotId = slotId;
+        selectedSlotName = slotName;
+        selectedPrice = price;
+
+        document.querySelectorAll(".matrix-slot-btn").forEach(b => {
+            b.className = "matrix-slot-btn w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#00685f] text-[11px] font-bold border border-emerald-200 transition-all";
+        });
+
+        btn.className = "matrix-slot-btn w-full py-2.5 rounded-xl bg-[#00685f] text-white text-[11px] font-bold shadow-md scale-105";
+
+        const bar = document.getElementById("stickyCheckoutBar");
+        bar.classList.remove("hidden");
+        document.getElementById("barSlotDetails").textContent = `${courtName} - ${slotName}`;
+        document.getElementById("barDateDetails").textContent = `Ngày chơi: ${formatDate(selectedDate)}`;
+        document.getElementById("barTotalPrice").textContent = formatCurrency(price);
+    }
+
+    function goToCheckout() {
+        if (!AuthManager.isAuthenticated()) {
+            Swal.fire({
+                icon: "info",
+                title: "Đăng nhập để đặt sân",
+                text: "Vui lòng đăng nhập trước khi tiến hành xác nhận đặt chỗ.",
+                confirmButtonColor: "#00685f"
+            }).then(() => {
+                window.location.href = `/Auth/Login?returnUrl=${encodeURIComponent(window.location.href)}`;
+            });
+            return;
+        }
+
+        // Chuyển sang trang Checkout với các query parameters
+        const checkoutUrl = `/Player/Checkout?facilityId=${facilityId}&courtId=${selectedCourtId}&slotId=${selectedSlotId}&playDate=${selectedDate}&courtName=${encodeURIComponent(selectedCourtName)}&slotName=${encodeURIComponent(selectedSlotName)}&facilityName=${encodeURIComponent(currentFacility.name)}&price=${selectedPrice}`;
+        window.location.href = checkoutUrl;
+    }
+
+    document.addEventListener("DOMContentLoaded", loadFacilityDetails);
+</script>
+}

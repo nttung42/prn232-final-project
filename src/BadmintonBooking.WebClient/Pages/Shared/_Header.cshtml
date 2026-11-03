@@ -1,0 +1,77 @@
+<!-- Header Bar CourtSide Design -->
+<header class="fixed top-0 w-full z-50 bg-[#f8f9ff]/80 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-b border-slate-100">
+    <div class="h-20 max-w-7xl mx-auto px-6 flex items-center justify-between">
+        <div class="flex items-center gap-8">
+            <a href="/" class="text-2xl font-bold text-[#00685f] tracking-tight flex items-center gap-2">
+                <span class="material-symbols-outlined text-[28px]">sports_tennis</span>
+                <span>CourtSide</span>
+            </a>
+            <nav class="hidden md:flex items-center gap-2">
+                <a href="/" class="text-sm font-medium text-slate-700 hover:text-[#00685f] px-3 py-2 rounded-lg transition-colors">Trang chủ</a>
+                <a href="/Player/Facilities" class="text-sm font-medium text-slate-700 hover:text-[#00685f] px-3 py-2 rounded-lg transition-colors">Danh sách sân</a>
+                <a href="/Player/MyBookings" class="text-sm font-medium text-slate-700 hover:text-[#00685f] px-3 py-2 rounded-lg transition-colors">Lịch đặt của tôi</a>
+                <a href="/Player/Wallet" class="text-sm font-medium text-slate-700 hover:text-[#00685f] px-3 py-2 rounded-lg transition-colors">Ví CourtSide</a>
+            </nav>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <!-- Search Quick Bar -->
+            <div class="relative hidden lg:block">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                <input id="quickSearchInput" type="text" placeholder="Tìm kiếm sân..." 
+                       class="bg-slate-100 text-slate-800 placeholder:text-slate-400 text-sm pl-10 pr-4 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-[#00685f] w-56 transition-all" />
+            </div>
+
+            <!-- User Auth Section -->
+            <div id="navGuestBox" class="flex items-center gap-2">
+                <a href="/Auth/Login" class="text-sm font-semibold text-slate-700 hover:text-[#00685f] px-4 py-2 rounded-xl transition-colors">Đăng nhập</a>
+                <a href="/Auth/Register" class="bg-[#00685f] hover:bg-[#008378] text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-md transition-all">Đăng ký</a>
+            </div>
+
+            <div id="navUserBox" class="hidden items-center gap-3">
+                <div class="flex flex-col text-right">
+                    <span id="navUserName" class="text-sm font-bold text-slate-800 leading-tight">User</span>
+                    <span id="navUserRoleBadge" class="text-[11px] font-semibold text-[#00685f]">Player</span>
+                </div>
+
+                <!-- Portal Switcher Button if Provider or Admin -->
+                <a id="navPortalLink" href="#" class="hidden p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors" title="Trang quản trị">
+                    <span class="material-symbols-outlined text-[20px]">dashboard</span>
+                </a>
+
+                <!-- Logout Button -->
+                <button onclick="AuthManager.logout()" class="p-2 rounded-full hover:bg-rose-50 text-slate-500 hover:text-rose-600 transition-colors" title="Đăng xuất">
+                    <span class="material-symbols-outlined text-[20px]">logout</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const user = AuthManager.getUser();
+        const guestBox = document.getElementById("navGuestBox");
+        const userBox = document.getElementById("navUserBox");
+        const portalLink = document.getElementById("navPortalLink");
+
+        if (user && AuthManager.isAuthenticated()) {
+            if (guestBox) guestBox.classList.add("hidden");
+            if (userBox) {
+                userBox.classList.remove("hidden");
+                userBox.classList.add("flex");
+                document.getElementById("navUserName").textContent = user.fullName || user.email;
+                document.getElementById("navUserRoleBadge").textContent = user.role;
+
+                if (user.role === "Provider") {
+                    portalLink.href = "/Provider/Facilities";
+                    portalLink.classList.remove("hidden");
+                } else if (user.role === "Admin") {
+                    portalLink.href = "/Admin/Dashboard";
+                    portalLink.classList.remove("hidden");
+                }
+            }
+        }
+    });
+</script>
+

@@ -1,0 +1,120 @@
+@page
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Quản lý Người dùng Toàn hệ thống";
+}
+
+<div class="space-y-6">
+    <!-- Header & Filter -->
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-black text-slate-800">Quản trị Người dùng</h2>
+            <p class="text-xs text-slate-500">Quản lý tài khoản, phân quyền vai trò và trạng thái hoạt động</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <select id="adminRoleFilter" onchange="loadUsers()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00685f]">
+                <option value="">Tất cả vai trò</option>
+                <option value="Player">Người chơi (Player)</option>
+                <option value="Provider">Chủ sân (Provider)</option>
+                <option value="Admin">Quản trị viên (Admin)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                        <th class="py-4 px-6">ID</th>
+                        <th class="py-4 px-6">Họ và tên</th>
+                        <th class="py-4 px-6">Email</th>
+                        <th class="py-4 px-6">Số điện thoại</th>
+                        <th class="py-4 px-6">Vai trò (Role)</th>
+                        <th class="py-4 px-6">Trạng thái</th>
+                        <th class="py-4 px-6 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="adminUsersTbody" class="divide-y divide-slate-100">
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <p class="mt-2">Đang tải danh sách người dùng...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    async function loadUsers() {
+        const tbody = document.getElementById("adminUsersTbody");
+        const role = document.getElementById("adminRoleFilter").value;
+
+        const queryStr = buildODataQuery({
+            filter: role ? `Role eq '${role}'` : null,
+            orderby: "CreatedAt desc"
+        });
+
+        try {
+            const users = await callApi(`/api/users${queryStr}`);
+
+            if (!users || users.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 text-xs">Không tìm thấy người dùng nào.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = users.map(u => {
+                let roleBadge = "";
+                if (u.role === "Admin") roleBadge = `<span class="bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Admin</span>`;
+                else if (u.role === "Provider") roleBadge = `<span class="bg-teal-50 text-teal-700 border border-teal-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Provider</span>`;
+                else roleBadge = `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Player</span>`;
+
+                const statusBadge = u.isActive 
+                    ? `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Hoạt động</span>`
+                    : `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã khóa</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-4 px-6 font-mono font-bold text-slate-500">#${u.id}</td>
+                        <td class="py-4 px-6 font-bold text-slate-800">${u.fullName}</td>
+                        <td class="py-4 px-6 text-slate-600">${u.email}</td>
+                        <td class="py-4 px-6 text-slate-600">${u.phoneNumber || "-"}</td>
+                        <td class="py-4 px-6">${roleBadge}</td>
+                        <td class="py-4 px-6">${statusBadge}</td>
+                        <td class="py-4 px-6 text-right">
+                            <button onclick="toggleUserStatus(${u.id}, ${!u.isActive})" class="${u.isActive ? 'bg-rose-50 hover:bg-rose-100 text-rose-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} px-3 py-1.5 rounded-xl font-bold text-xs transition-colors">
+                                ${u.isActive ? "Khóa TK" : "Mở khóa"}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-500 text-xs">Lỗi: ${err.message}</td></tr>`;
+        }
+    }
+
+    async function toggleUserStatus(id, newStatus) {
+        try {
+            await callApi(`/api/users/${id}`, {
+                method: "PUT",
+                data: { isActive: newStatus }
+            });
+            Swal.fire({ icon: "success", title: "Cập nhật thành công!", timer: 1200, showConfirmButton: false });
+            loadUsers();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadUsers);
+</script>
+}
+

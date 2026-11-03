@@ -1,0 +1,105 @@
+@page
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Thống kê Hệ thống Dashboard";
+}
+
+<div class="space-y-8">
+    <!-- Top KPI Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase text-slate-400">Tổng người dùng</span>
+                <span class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[20px]">group</span>
+            </div>
+            <div class="text-2xl font-black text-slate-800" id="kpiTotalUsers">...</div>
+            <span class="text-[11px] text-slate-400">Player, Provider & Admin</span>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase text-slate-400">Tổng cơ sở</span>
+                <span class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center material-symbols-outlined text-[20px]">apartment</span>
+            </div>
+            <div class="text-2xl font-black text-slate-800" id="kpiTotalFacilities">...</div>
+            <span class="text-[11px] text-emerald-600 font-semibold" id="kpiApprovedFacilities">Đang hoạt động</span>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase text-slate-400">Cơ sở chờ duyệt</span>
+                <span class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[20px]">pending_actions</span>
+            </div>
+            <div class="text-2xl font-black text-amber-600" id="kpiPendingFacilities">...</div>
+            <a href="/Admin/Facilities" class="text-[11px] text-[#00685f] font-bold hover:underline">Vào duyệt ngay &rarr;</a>
+        </div>
+
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold uppercase text-slate-400">Tổng lượt đặt sân</span>
+                <span class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center material-symbols-outlined text-[20px]">calendar_month</span>
+            </div>
+            <div class="text-2xl font-black text-slate-800" id="kpiTotalBookings">...</div>
+            <span class="text-[11px] text-slate-400">Trên toàn hệ thống</span>
+        </div>
+    </div>
+
+    <!-- Quick Shortcuts Section -->
+    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+        <h3 class="text-base font-bold text-slate-800 mb-4">Lối tắt tác vụ Quản trị</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="/Admin/Facilities" class="p-5 rounded-2xl bg-slate-50 hover:bg-[#00685f]/5 border border-slate-200 hover:border-[#00685f]/30 transition-all flex items-center gap-4 group">
+                <div class="w-12 h-12 rounded-xl bg-[#00685f]/10 text-[#00685f] flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">fact_check</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-slate-800 group-hover:text-[#00685f] transition-colors">Kiểm duyệt Cơ sở Cầu lông</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Xem xét thông tin đăng ký cơ sở mới từ các chủ sân (Provider) và phê duyệt.</p>
+                </div>
+            </a>
+
+            <a href="/Admin/Users" class="p-5 rounded-2xl bg-slate-50 hover:bg-[#00685f]/5 border border-slate-200 hover:border-[#00685f]/30 transition-all flex items-center gap-4 group">
+                <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                    <span class="material-symbols-outlined text-[24px]">manage_accounts</span>
+                </div>
+                <div>
+                    <h4 class="font-bold text-sm text-slate-800 group-hover:text-blue-600 transition-colors">Quản lý Tài khoản & Phân quyền</h4>
+                    <p class="text-xs text-slate-500 mt-0.5">Quản lý người dùng, khóa tài khoản vi phạm hoặc điều chỉnh vai trò hệ thống.</p>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    async function loadDashboard() {
+        try {
+            // Lấy dữ liệu thống kê từ dashboard API
+            const stats = await callApi("/api/dashboard/stats");
+            document.getElementById("kpiTotalUsers").textContent = stats.totalUsers || 0;
+            document.getElementById("kpiTotalFacilities").textContent = stats.totalFacilities || 0;
+            document.getElementById("kpiPendingFacilities").textContent = stats.pendingFacilities || 0;
+            document.getElementById("kpiTotalBookings").textContent = stats.totalBookings || 0;
+        } catch (err) {
+            console.warn("Chưa gọi được dashboard/stats, tính từ các API đơn lẻ:", err);
+            // Fallback: Gọi song song các API OData để lấy $count
+            try {
+                const users = await callApi("/api/users");
+                const facilities = await callApi("/api/facilities");
+                const bookings = await callApi("/api/bookings");
+
+                document.getElementById("kpiTotalUsers").textContent = users.length;
+                document.getElementById("kpiTotalFacilities").textContent = facilities.length;
+                document.getElementById("kpiPendingFacilities").textContent = facilities.filter(f => f.status === "Pending").length;
+                document.getElementById("kpiTotalBookings").textContent = bookings.length;
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadDashboard);
+</script>
+}
+

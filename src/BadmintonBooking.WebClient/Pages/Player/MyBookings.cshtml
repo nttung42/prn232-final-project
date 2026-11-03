@@ -1,0 +1,188 @@
+@page
+@{
+    ViewData["Title"] = "Lịch đặt của tôi";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between pb-6 mb-8 border-b border-slate-200 gap-4">
+        <div>
+            <h1 class="text-3xl font-black text-slate-800">Lịch đặt của tôi</h1>
+            <p class="text-xs text-slate-500 mt-1">Theo dõi trạng thái các đơn đặt sân và quản lý lịch chơi cá nhân</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <a href="/Player/Facilities" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                <span>Đặt thêm sân mới</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
+        <button onclick="filterStatus('')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-[#00685f] text-white transition-all" data-status="">Tất cả</button>
+        <button onclick="filterStatus('Pending')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Pending">Chờ duyệt (Pending)</button>
+        <button onclick="filterStatus('Confirmed')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Confirmed">Đã xác nhận</button>
+        <button onclick="filterStatus('Completed')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Completed">Đã hoàn thành</button>
+        <button onclick="filterStatus('Cancelled')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Cancelled">Đã hủy</button>
+    </div>
+
+    <!-- Bookings Table / List -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                        <th class="py-4 px-6">Mã đơn</th>
+                        <th class="py-4 px-6">Cụm sân & Sân con</th>
+                        <th class="py-4 px-6">Khung giờ</th>
+                        <th class="py-4 px-6">Ngày chơi</th>
+                        <th class="py-4 px-6">Tổng tiền</th>
+                        <th class="py-4 px-6">Trạng thái</th>
+                        <th class="py-4 px-6 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="myBookingsTbody" class="divide-y divide-slate-100">
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <p class="mt-2">Đang tải lịch sử đặt sân...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentFilter = "";
+
+    function filterStatus(status) {
+        currentFilter = status;
+        document.querySelectorAll(".status-tab").forEach(tab => {
+            if (tab.getAttribute("data-status") === status) {
+                tab.className = "status-tab px-4 py-2 rounded-xl text-xs font-bold bg-[#00685f] text-white transition-all";
+            } else {
+                tab.className = "status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all";
+            }
+        });
+        loadMyBookings();
+    }
+
+    async function loadMyBookings() {
+        if (!AuthManager.requireAuth()) return;
+
+        const tbody = document.getElementById("myBookingsTbody");
+        let queryStr = buildODataQuery({
+            filter: currentFilter ? `Status eq '${currentFilter}'` : null,
+            orderby: "CreatedAt desc"
+        });
+
+        try {
+            const bookings = await callApi(`/api/bookings${queryStr}`);
+
+            if (!bookings || bookings.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="py-16 text-center text-slate-400">
+                            <span class="material-symbols-outlined text-[48px] text-slate-300">calendar_today</span>
+                            <p class="text-xs font-semibold mt-2">Bạn chưa có đơn đặt sân nào trong mục này.</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = bookings.map(b => {
+                let statusBadge = "";
+                if (b.status === "Pending") statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Chờ duyệt</span>`;
+                else if (b.status === "Confirmed") statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã duyệt</span>`;
+                else if (b.status === "Completed") statusBadge = `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Hoàn thành</span>`;
+                else if (b.status === "Cancelled") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã hủy</span>`;
+
+                const canCancel = (b.status === "Pending" || b.status === "Confirmed");
+
+                return `
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-4 px-6 font-mono font-bold text-slate-700">#BK-${b.id}</td>
+                        <td class="py-4 px-6">
+                            <div class="font-bold text-slate-800">${b.facilityName || "Cụm sân"}</div>
+                            <div class="text-[11px] text-slate-400">${b.courtName || "Sân"}</div>
+                        </td>
+                        <td class="py-4 px-6 font-semibold text-slate-700">
+                            ${formatTime(b.startTime)} - ${formatTime(b.endTime)}
+                        </td>
+                        <td class="py-4 px-6 font-medium text-slate-600">
+                            ${formatDate(b.playDate)}
+                        </td>
+                        <td class="py-4 px-6 font-bold text-[#00685f]">
+                            ${formatCurrency(b.totalPrice)}
+                        </td>
+                        <td class="py-4 px-6">
+                            ${statusBadge}
+                        </td>
+                        <td class="py-4 px-6 text-right">
+                            ${canCancel ? `
+                                <button onclick="cancelBooking(${b.id})" class="text-rose-600 hover:text-rose-800 font-bold text-xs p-1.5 hover:bg-rose-50 rounded-lg transition-colors" title="Hủy đặt sân">
+                                    Hủy sân
+                                </button>
+                            ` : `
+                                <span class="text-slate-300 text-xs italic">Không thể hủy</span>
+                            `}
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+        } catch (err) {
+            console.error("Lỗi tải lịch đặt:", err);
+            tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-500 text-xs">Lỗi: ${err.message}</td></tr>`;
+        }
+    }
+
+    async function cancelBooking(id) {
+        const confirm = await Swal.fire({
+            title: "Xác nhận hủy đặt sân?",
+            text: "Bạn có chắc chắn muốn hủy đơn đặt sân này không?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ba1a1a",
+            cancelButtonColor: "#6d7a77",
+            confirmButtonText: "Đồng ý hủy",
+            cancelButtonText: "Quay lại"
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+            await callApi(`/api/bookings/${id}`, {
+                method: "PUT",
+                data: {
+                    status: "Cancelled",
+                    note: "Khách hàng tự hủy trên web"
+                }
+            });
+
+            Swal.fire({
+                icon: "success",
+                title: "Đã hủy đơn!",
+                text: "Đơn đặt sân đã được hủy thành công.",
+                confirmButtonColor: "#00685f"
+            });
+            loadMyBookings();
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "Lỗi",
+                text: err.message || "Không thể hủy đơn đặt sân.",
+                confirmButtonColor: "#00685f"
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadMyBookings);
+</script>
+}
+

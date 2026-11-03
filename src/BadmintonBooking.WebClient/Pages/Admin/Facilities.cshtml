@@ -1,0 +1,125 @@
+@page
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Kiểm duyệt Cơ sở Cầu lông";
+}
+
+<div class="space-y-6">
+    <!-- Header & Filter -->
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-black text-slate-800">Kiểm duyệt & Quản trị Cơ sở</h2>
+            <p class="text-xs text-slate-500">Phê duyệt hoặc tạm khóa các cụm sân trên toàn hệ thống</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <select id="adminFacStatusFilter" onchange="loadAdminFacilities()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00685f]">
+                <option value="">Tất cả trạng thái</option>
+                <option value="Pending" selected>Chờ duyệt (Pending)</option>
+                <option value="Approved">Đã duyệt (Approved)</option>
+                <option value="Suspended">Đang tạm khóa (Suspended)</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Facilities List Table -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                        <th class="py-4 px-6">Mã CS</th>
+                        <th class="py-4 px-6">Tên Cơ sở</th>
+                        <th class="py-4 px-6">Chủ sân (Provider)</th>
+                        <th class="py-4 px-6">Địa chỉ & Quận</th>
+                        <th class="py-4 px-6">Giờ hoạt động</th>
+                        <th class="py-4 px-6">Trạng thái</th>
+                        <th class="py-4 px-6 text-right">Thao tác duyệt</th>
+                    </tr>
+                </thead>
+                <tbody id="adminFacilitiesTbody" class="divide-y divide-slate-100">
+                    <tr>
+                        <td colspan="7" class="py-12 text-center text-slate-400">
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <p class="mt-2">Đang tải danh sách cơ sở...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    async function loadAdminFacilities() {
+        const tbody = document.getElementById("adminFacilitiesTbody");
+        const status = document.getElementById("adminFacStatusFilter").value;
+
+        const queryStr = buildODataQuery({
+            filter: status ? `Status eq '${status}'` : null,
+            orderby: "CreatedAt desc"
+        });
+
+        try {
+            const facilities = await callApi(`/api/facilities${queryStr}`);
+
+            if (!facilities || facilities.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 text-xs">Không có cơ sở nào trong mục này.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = facilities.map(f => {
+                let statusBadge = "";
+                if (f.status === "Approved") statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã duyệt</span>`;
+                else if (f.status === "Pending") statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Chờ duyệt</span>`;
+                else if (f.status === "Suspended") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Tạm khóa</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-50/70 transition-colors">
+                        <td class="py-4 px-6 font-mono font-bold text-slate-700">#FAC-${f.id}</td>
+                        <td class="py-4 px-6 font-bold text-slate-800">${f.name}</td>
+                        <td class="py-4 px-6 text-slate-600 font-medium">${f.providerName || "Provider #" + f.providerId}</td>
+                        <td class="py-4 px-6 text-slate-500">${f.address}, ${f.district}</td>
+                        <td class="py-4 px-6 text-slate-600">${formatTime(f.openTime)} - ${formatTime(f.closeTime)}</td>
+                        <td class="py-4 px-6">${statusBadge}</td>
+                        <td class="py-4 px-6 text-right">
+                            <div class="flex items-center justify-end gap-1.5">
+                                ${f.status !== "Approved" ? `
+                                    <button onclick="updateFacilityStatus(${f.id}, 'Approved')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs transition-colors">
+                                        Duyệt (Approve)
+                                    </button>
+                                ` : ""}
+                                ${f.status !== "Suspended" ? `
+                                    <button onclick="updateFacilityStatus(${f.id}, 'Suspended')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs transition-colors">
+                                        Khóa (Suspend)
+                                    </button>
+                                ` : ""}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-rose-500 text-xs">Lỗi: ${err.message}</td></tr>`;
+        }
+    }
+
+    async function updateFacilityStatus(id, newStatus) {
+        try {
+            await callApi(`/api/facilities/${id}/status`, {
+                method: "PATCH",
+                data: { status: newStatus }
+            });
+            Swal.fire({ icon: "success", title: "Cập nhật thành công!", timer: 1200, showConfirmButton: false });
+            loadAdminFacilities();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadAdminFacilities);
+</script>
+}
+

@@ -1,0 +1,184 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Trang chủ - Hệ Thống Đặt Sân Cầu Lông Đa Nhà Cung Cấp";
+}
+
+<div class="flex flex-col w-full">
+    <!-- Hero Banner Section -->
+    <section class="relative w-full min-h-[580px] flex items-center justify-center overflow-hidden bg-slate-900">
+        <div class="absolute inset-0 z-0 bg-cover bg-center opacity-40 scale-105 transition-transform duration-1000" 
+             style="background-image: url('https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=2070&auto=format&fit=crop')">
+        </div>
+        <div class="absolute inset-0 z-10 bg-gradient-to-r from-slate-950/90 via-slate-900/60 to-transparent"></div>
+        
+        <div class="relative z-20 max-w-7xl w-full mx-auto px-6 py-20 flex flex-col items-start justify-center gap-6">
+            <div class="inline-flex items-center gap-2 bg-[#00685f]/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-[#00685f]/30">
+                <span class="material-symbols-outlined text-[#6df5e1] text-[18px]">verified</span>
+                <span class="text-xs text-[#6df5e1] font-bold tracking-wide uppercase">Nền tảng đặt sân cầu lông số 1 Việt Nam</span>
+            </div>
+            
+            <h1 class="text-4xl md:text-6xl text-white max-w-2xl font-black tracking-tight leading-tight">
+                Nâng tầm trận đấu<br/><span class="text-[#6df5e1]">của bạn cùng CourtSide</span>
+            </h1>
+            
+            <p class="text-slate-300 text-base md:text-lg max-w-xl font-normal leading-relaxed">
+                Trải nghiệm hệ thống sân cầu lông đạt chuẩn quốc tế với quy trình đặt lịch thông minh, tiện ích toàn diện và cộng đồng lông thủ năng động.
+            </p>
+            
+            <div class="flex flex-wrap items-center gap-4 pt-2">
+                <a href="/Player/Facilities" class="bg-[#00685f] hover:bg-[#008378] text-white text-base px-8 py-4 rounded-xl font-bold shadow-xl shadow-[#00685f]/30 transition-all hover:scale-105 flex items-center gap-2">
+                    <span>Tìm sân ngay</span>
+                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                </a>
+                <a href="#featured-courts" class="bg-white/10 hover:bg-white/20 text-white backdrop-blur-md text-base px-8 py-4 rounded-xl font-bold transition-all hover:scale-105 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[#6df5e1] text-[20px]">explore</span>
+                    <span>Khám phá sân nổi bật</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Stats & Service Highlights Section -->
+    <section class="max-w-7xl w-full mx-auto px-6 -mt-14 relative z-30">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-col gap-2 transform transition-all hover:-translate-y-1 border border-slate-100">
+                <div class="w-12 h-12 rounded-xl bg-[#00685f]/10 flex items-center justify-center text-[#00685f] mb-1">
+                    <span class="material-symbols-outlined text-[24px]">sports_tennis</span>
+                </div>
+                <span class="text-2xl text-slate-800 font-extrabold" id="statFacilities">120+ Cụm sân</span>
+                <span class="text-xs text-slate-500">Phủ sóng toàn quốc với trang thiết bị cao cấp</span>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-col gap-2 transform transition-all hover:-translate-y-1 border border-slate-100">
+                <div class="w-12 h-12 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 mb-1">
+                    <span class="material-symbols-outlined text-[24px]">group</span>
+                </div>
+                <span class="text-2xl text-slate-800 font-extrabold">45,000+ Lông thủ</span>
+                <span class="text-xs text-slate-500">Cộng đồng giao lưu và ghép trận sôi nổi</span>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-col gap-2 transform transition-all hover:-translate-y-1 border border-slate-100">
+                <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 mb-1">
+                    <span class="material-symbols-outlined text-[24px]">shopping_bag</span>
+                </div>
+                <span class="text-2xl text-slate-800 font-extrabold">Thuê vợt & Phụ kiện</span>
+                <span class="text-xs text-slate-500">Vợt Yonex, Lining chính hãng sẵn sàng tại sân</span>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-xl shadow-slate-200/50 flex flex-col gap-2 transform transition-all hover:-translate-y-1 border border-slate-100">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 mb-1">
+                    <span class="material-symbols-outlined text-[24px]">handshake</span>
+                </div>
+                <span class="text-2xl text-slate-800 font-extrabold">Ghép kèo tự động</span>
+                <span class="text-xs text-slate-500">Tìm đối thủ theo trình độ, không lo thiếu người</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Courts Grid Section -->
+    <section class="max-w-7xl w-full mx-auto px-6 py-20" id="featured-courts">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10 gap-4">
+            <div>
+                <span class="text-xs text-[#00685f] uppercase font-bold tracking-widest block mb-2">Hệ thống cơ sở</span>
+                <h2 class="text-3xl text-slate-800 font-black">Các cụm sân nổi bật đã kiểm duyệt</h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="/Player/Facilities" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-colors flex items-center gap-1 shadow-md">
+                    <span>Xem tất cả cơ sở</span>
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 3-Column Grid Dynamically Loaded -->
+        <div id="homeFeaturedList" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="col-span-full py-12 text-center text-slate-400">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#00685f] border-t-transparent"></div>
+                <p class="text-sm mt-3">Đang tải danh sách sân nổi bật...</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", async function () {
+        const container = document.getElementById("homeFeaturedList");
+        try {
+            // Gọi API OData lọc các cơ sở có Status = Approved
+            const query = buildODataQuery({
+                filter: "Status eq 'Approved'",
+                orderby: "CreatedAt desc",
+                top: 6
+            });
+
+            const facilities = await callApi(`/api/facilities${query}`);
+
+            if (!facilities || facilities.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                        <span class="material-symbols-outlined text-slate-300 text-[48px]">stadium</span>
+                        <p class="text-slate-500 font-semibold mt-2">Hiện chưa có cụm sân nào được phê duyệt.</p>
+                        <a href="/Auth/Register" class="text-xs text-[#00685f] font-bold mt-2 inline-block">Đăng ký làm chủ sân (Provider) để đăng sân ngay</a>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = facilities.map(f => `
+                <div class="bg-white rounded-2xl overflow-hidden shadow-lg shadow-slate-200/50 flex flex-col group transition-all hover:-translate-y-1.5 border border-slate-100">
+                    <div class="relative h-60 w-full bg-cover bg-center overflow-hidden bg-slate-200" 
+                         style="background-image: url('${f.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=600&auto=format&fit=crop'}')">
+                        <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold text-slate-800 flex items-center gap-1 shadow-sm">
+                            <span class="material-symbols-outlined text-[#00685f] text-[14px]">location_on</span>
+                            <span>${f.district}</span>
+                        </div>
+                        <div class="absolute top-4 right-4 bg-[#00685f] text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                            Sân tiêu chuẩn
+                        </div>
+                    </div>
+                    <div class="p-6 flex flex-col flex-grow justify-between gap-4">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-lg text-slate-800 group-hover:text-[#00685f] transition-colors line-clamp-1">${f.name}</h3>
+                                <div class="flex items-center gap-1 text-orange-500 font-bold text-sm">
+                                    <span class="material-symbols-outlined text-[16px]">star</span>
+                                    <span>5.0</span>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500 flex items-center gap-1 line-clamp-1">
+                                <span class="material-symbols-outlined text-[14px]">pin_drop</span>
+                                <span>${f.address}, ${f.district}</span>
+                            </p>
+                            <p class="text-xs text-slate-500 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">schedule</span>
+                                <span>Giờ mở cửa: ${formatTime(f.openTime)} - ${formatTime(f.closeTime)}</span>
+                            </p>
+                        </div>
+                        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                            <div>
+                                <span class="text-[11px] text-slate-400 block">Liên hệ</span>
+                                <span class="text-sm font-bold text-slate-700">${f.phone}</span>
+                            </div>
+                            <a href="/Player/FacilityDetail?id=${f.id}" class="bg-[#00685f] hover:bg-[#008378] text-white px-4 py-2 rounded-xl font-bold text-xs shadow-md transition-all hover:scale-105 flex items-center gap-1">
+                                <span>Đặt sân</span>
+                                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+
+        } catch (err) {
+            console.error("Lỗi tải sân nổi bật:", err);
+            container.innerHTML = `
+                <div class="col-span-full py-12 text-center bg-rose-50 rounded-2xl border border-rose-100 text-rose-600">
+                    <p class="text-sm font-semibold">Không thể kết nối đến Web API backend (${API_BASE_URL}).</p>
+                    <p class="text-xs mt-1 text-slate-500">Hãy chắc chắn Web API đang chạy tại https://localhost:7186</p>
+                </div>
+            `;
+        }
+    });
+</script>
+}

@@ -1,0 +1,142 @@
+@page
+@{
+    ViewData["Title"] = "Danh sách Sân & Tìm kiếm";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Header Title -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-black text-slate-800">Danh sách Cụm sân Cầu lông</h1>
+        <p class="text-xs text-slate-500 mt-1">Tìm kiếm và chọn sân phù hợp với vị trí và thời gian của bạn</p>
+    </div>
+
+    <!-- OData Search & Filter Bar -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <!-- Search Name -->
+            <div class="md:col-span-2">
+                <label class="block text-xs font-bold text-slate-600 mb-1">Tên cụm sân</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                    <input type="text" id="filterName" placeholder="Nhập tên cụm sân cần tìm..."
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#00685f]" />
+                </div>
+            </div>
+
+            <!-- Filter District -->
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Quận / Huyện</label>
+                <input type="text" id="filterDistrict" placeholder="Ví dụ: Quận 7, Cầu Giấy..."
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#00685f]" />
+            </div>
+
+            <!-- Sort By -->
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Sắp xếp</label>
+                <select id="filterOrderBy" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#00685f]">
+                    <option value="CreatedAt desc">Mới nhất</option>
+                    <option value="Name asc">Tên A-Z</option>
+                    <option value="District asc">Theo Quận/Huyện</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+            <span id="resultCount" class="text-xs text-slate-500 font-semibold">Đang tải dữ liệu...</span>
+            <button onclick="loadFacilities()" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1">
+                <span class="material-symbols-outlined text-[16px]">filter_alt</span>
+                <span>Lọc danh sách</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Facilities List Grid -->
+    <div id="facilitiesContainer" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="col-span-full py-16 text-center text-slate-400">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#00685f] border-t-transparent"></div>
+            <p class="text-xs mt-3">Đang tải danh sách cơ sở...</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    async function loadFacilities() {
+        const container = document.getElementById("facilitiesContainer");
+        const countSpan = document.getElementById("resultCount");
+        const name = document.getElementById("filterName").value.trim();
+        const district = document.getElementById("filterDistrict").value.trim();
+        const orderBy = document.getElementById("filterOrderBy").value;
+
+        // Xây dựng điều kiện OData $filter
+        const filterParts = ["Status eq 'Approved'"];
+        if (name) {
+            filterParts.push(`contains(tolower(Name), tolower('${name}'))`);
+        }
+        if (district) {
+            filterParts.push(`contains(tolower(District), tolower('${district}'))`);
+        }
+
+        const query = buildODataQuery({
+            filter: filterParts.join(" and "),
+            orderby: orderBy
+        });
+
+        try {
+            const facilities = await callApi(`/api/facilities${query}`);
+            countSpan.textContent = `Tìm thấy ${facilities.length} cụm sân phù hợp`;
+
+            if (facilities.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-16 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                        <span class="material-symbols-outlined text-slate-300 text-[48px]">search_off</span>
+                        <p class="text-slate-500 text-sm font-semibold mt-2">Không tìm thấy cụm sân nào phù hợp với bộ lọc.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = facilities.map(f => `
+                <div class="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all border border-slate-100 flex flex-col group">
+                    <div class="relative h-52 bg-slate-200 bg-cover bg-center" style="background-image: url('${f.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=600&auto=format&fit=crop'}')">
+                        <div class="absolute top-3 left-3 bg-white/95 px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-800 shadow-sm flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[#00685f] text-[13px]">location_on</span>
+                            <span>${f.district}</span>
+                        </div>
+                    </div>
+                    <div class="p-5 flex flex-col flex-grow justify-between gap-4">
+                        <div>
+                            <h3 class="font-bold text-base text-slate-800 group-hover:text-[#00685f] transition-colors line-clamp-1">${f.name}</h3>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${f.address}</p>
+                            <div class="mt-3 flex items-center gap-3 text-[11px] text-slate-500">
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span>
+                                    <span>${formatTime(f.openTime)} - ${formatTime(f.closeTime)}</span>
+                                </span>
+                                <span class="flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-[14px] text-slate-400">call</span>
+                                    <span>${f.phone}</span>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="pt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-xs text-slate-400">Cơ sở chính hãng</span>
+                            <a href="/Player/FacilityDetail?id=${f.id}" class="bg-[#00685f] hover:bg-[#008378] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1">
+                                <span>Xem lịch & Đặt</span>
+                                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `).join("");
+
+        } catch (err) {
+            console.error("Lỗi lọc cơ sở:", err);
+            container.innerHTML = `<div class="col-span-full py-12 text-center text-rose-500 text-xs">Lỗi: ${err.message}</div>`;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadFacilities);
+</script>
+}
+

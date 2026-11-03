@@ -1,0 +1,301 @@
+@page
+@{
+    Layout = "_ProviderLayout";
+    ViewData["Title"] = "Quản lý Sân con & Khung giờ";
+}
+
+<div class="space-y-6">
+    <!-- Facility Selector Header -->
+    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#00685f]">Chọn cơ sở quản lý</span>
+            <div class="flex items-center gap-3 mt-1">
+                <select id="facilitySelect" onchange="onFacilityChange()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00685f] min-w-[280px]">
+                    <option value="">Đang tải danh sách cơ sở...</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dual Panel Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left Panel: Quản lý Sân con (Courts) -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                    <div>
+                        <h3 class="text-base font-black text-slate-800">Danh sách Sân con</h3>
+                        <p class="text-[11px] text-slate-400">Các sân thi đấu tại cơ sở này</p>
+                    </div>
+                    <button onclick="openCourtModal()" class="bg-[#00685f] hover:bg-[#008378] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">add</span>
+                        <span>Thêm sân</span>
+                    </button>
+                </div>
+
+                <div id="courtsList" class="space-y-2.5">
+                    <div class="py-8 text-center text-slate-400 text-xs">Vui lòng chọn một cơ sở để xem sân con.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Cấu hình Khung giờ & Giá (TimeSlots) -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col justify-between">
+            <div>
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
+                    <div>
+                        <h3 class="text-base font-black text-slate-800">Khung giờ & Bảng giá</h3>
+                        <p class="text-[11px] text-slate-400">Thiết lập các ca giờ và giá thuê sân</p>
+                    </div>
+                    <button onclick="openSlotModal()" class="bg-[#00685f] hover:bg-[#008378] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px]">add</span>
+                        <span>Thêm ca giờ</span>
+                    </button>
+                </div>
+
+                <div id="slotsList" class="space-y-2.5">
+                    <div class="py-8 text-center text-slate-400 text-xs">Vui lòng chọn một cơ sở để xem khung giờ.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm Sân Con -->
+<div id="courtModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+        <h4 class="text-base font-bold text-slate-800 mb-4" id="courtModalTitle">Thêm sân mới</h4>
+        <form id="courtForm" class="space-y-3">
+            <input type="hidden" id="courtIdInput" />
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Tên sân</label>
+                <input type="text" id="courtNameInput" required placeholder="Ví dụ: Sân 1 (Thảm VIP)"
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Loại thảm sân</label>
+                <select id="courtTypeSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none">
+                    <option value="PVC">Thảm PVC tiêu chuẩn BWF</option>
+                    <option value="Wooden">Sàn gỗ thi đấu</option>
+                    <option value="Acrylic">Sàn Acrylic chống trượt</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Trạng thái</label>
+                <select id="courtStatusSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none">
+                    <option value="Active">Hoạt động (Active)</option>
+                    <option value="Maintenance">Bảo trì (Maintenance)</option>
+                </select>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-3">
+                <button type="button" onclick="closeCourtModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Hủy</button>
+                <button type="submit" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">Lưu sân</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Thêm Khung Giờ -->
+<div id="slotModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+        <h4 class="text-base font-bold text-slate-800 mb-4" id="slotModalTitle">Thêm khung giờ mới</h4>
+        <form id="slotForm" class="space-y-3">
+            <input type="hidden" id="slotIdInput" />
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Tên ca</label>
+                <input type="text" id="slotNameInput" required placeholder="Ví dụ: Ca sáng 1"
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Giờ bắt đầu</label>
+                    <input type="time" id="slotStartTime" required value="06:00"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">Giờ kết thúc</label>
+                    <input type="time" id="slotEndTime" required value="07:00"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Giá thuê (VNĐ)</label>
+                <input type="number" id="slotPriceInput" required min="10000" max="5000000" step="5000" value="90000"
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-3">
+                <button type="button" onclick="closeSlotModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Hủy</button>
+                <button type="submit" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">Lưu ca giờ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let currentFacilityId = null;
+
+    async function initPage() {
+        try {
+            const facilities = await callApi("/api/facilities");
+            const select = document.getElementById("facilitySelect");
+
+            if (!facilities || facilities.length === 0) {
+                select.innerHTML = `<option value="">Chưa có cơ sở nào - Hãy tạo cơ sở trước</option>`;
+                return;
+            }
+
+            select.innerHTML = facilities.map(f => `<option value="${f.id}">${f.name} (${f.district})</option>`).join("");
+
+            // Lấy id từ query string nếu có
+            const paramId = new URLSearchParams(window.location.search).get("facilityId");
+            if (paramId && facilities.some(f => f.id == paramId)) {
+                select.value = paramId;
+            }
+
+            currentFacilityId = select.value;
+            loadCourtsAndSlots();
+        } catch (err) {
+            console.error("Lỗi:", err);
+        }
+    }
+
+    function onFacilityChange() {
+        currentFacilityId = document.getElementById("facilitySelect").value;
+        loadCourtsAndSlots();
+    }
+
+    async function loadCourtsAndSlots() {
+        if (!currentFacilityId) return;
+
+        const courtsDiv = document.getElementById("courtsList");
+        const slotsDiv = document.getElementById("slotsList");
+
+        try {
+            const courts = await callApi(`/api/courts?$filter=FacilityId eq ${currentFacilityId}`);
+            const slots = await callApi(`/api/timeslots?$filter=FacilityId eq ${currentFacilityId}&$orderby=StartTime asc`);
+
+            // Render Courts
+            if (courts.length === 0) {
+                courtsDiv.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs">Chưa có sân con nào.</div>`;
+            } else {
+                courtsDiv.innerHTML = courts.map(c => `
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-xs text-slate-800">${c.courtName}</div>
+                            <div class="text-[10px] text-slate-400">${c.courtType} • ${c.status === "Active" ? "<span class='text-emerald-600 font-bold'>Hoạt động</span>" : "<span class='text-amber-600 font-bold'>Bảo trì</span>"}</div>
+                        </div>
+                        <button onclick="deleteCourt(${c.id})" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    </div>
+                `).join("");
+            }
+
+            // Render Slots
+            if (slots.length === 0) {
+                slotsDiv.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs">Chưa có khung giờ nào.</div>`;
+            } else {
+                slotsDiv.innerHTML = slots.map(s => `
+                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                        <div>
+                            <div class="font-bold text-xs text-slate-800">${s.slotName} (${formatTime(s.startTime)} - ${formatTime(s.endTime)})</div>
+                            <div class="text-[11px] font-bold text-[#00685f]">${formatCurrency(s.price)}</div>
+                        </div>
+                        <button onclick="deleteSlot(${s.id})" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors">
+                            <span class="material-symbols-outlined text-[18px]">delete</span>
+                        </button>
+                    </div>
+                `).join("");
+            }
+
+        } catch (err) {
+            console.error("Lỗi:", err);
+        }
+    }
+
+    // Modal Court
+    function openCourtModal() {
+        if (!currentFacilityId) return alert("Vui lòng chọn cơ sở trước!");
+        document.getElementById("courtForm").reset();
+        document.getElementById("courtModal").classList.remove("hidden");
+        document.getElementById("courtModal").classList.add("flex");
+    }
+    function closeCourtModal() {
+        document.getElementById("courtModal").classList.add("hidden");
+        document.getElementById("courtModal").classList.remove("flex");
+    }
+    document.getElementById("courtForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        try {
+            await callApi("/api/courts", {
+                method: "POST",
+                data: {
+                    facilityId: parseInt(currentFacilityId),
+                    courtName: document.getElementById("courtNameInput").value.trim(),
+                    courtType: document.getElementById("courtTypeSelect").value,
+                    status: document.getElementById("courtStatusSelect").value
+                }
+            });
+            closeCourtModal();
+            loadCourtsAndSlots();
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+
+    async function deleteCourt(id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa sân này?")) return;
+        try {
+            await callApi(`/api/courts/${id}`, { method: "DELETE" });
+            loadCourtsAndSlots();
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    // Modal Slot
+    function openSlotModal() {
+        if (!currentFacilityId) return alert("Vui lòng chọn cơ sở trước!");
+        document.getElementById("slotForm").reset();
+        document.getElementById("slotModal").classList.remove("hidden");
+        document.getElementById("slotModal").classList.add("flex");
+    }
+    function closeSlotModal() {
+        document.getElementById("slotModal").classList.add("hidden");
+        document.getElementById("slotModal").classList.remove("flex");
+    }
+    document.getElementById("slotForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        try {
+            await callApi("/api/timeslots", {
+                method: "POST",
+                data: {
+                    facilityId: parseInt(currentFacilityId),
+                    slotName: document.getElementById("slotNameInput").value.trim(),
+                    startTime: document.getElementById("slotStartTime").value + ":00",
+                    endTime: document.getElementById("slotEndTime").value + ":00",
+                    price: parseFloat(document.getElementById("slotPriceInput").value)
+                }
+            });
+            closeSlotModal();
+            loadCourtsAndSlots();
+        } catch (err) {
+            alert(err.message);
+        }
+    });
+
+    async function deleteSlot(id) {
+        if (!confirm("Bạn có chắc chắn muốn xóa khung giờ này?")) return;
+        try {
+            await callApi(`/api/timeslots/${id}`, { method: "DELETE" });
+            loadCourtsAndSlots();
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", initPage);
+</script>
+}
+

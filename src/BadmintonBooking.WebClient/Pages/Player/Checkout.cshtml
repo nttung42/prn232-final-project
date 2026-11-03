@@ -1,0 +1,254 @@
+@page
+@{
+    ViewData["Title"] = "Thanh toán & Xác nhận Đặt sân";
+}
+
+<div class="max-w-7xl mx-auto px-6 py-10">
+    <!-- Stepper Header -->
+    <div class="flex items-center justify-center mb-10">
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 text-emerald-700 font-bold text-xs">
+                <span class="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center material-symbols-outlined text-sm">check</span>
+                <span>1. Chọn sân</span>
+            </div>
+            <div class="w-12 h-0.5 bg-emerald-200"></div>
+            <div class="flex items-center gap-2 text-[#00685f] font-bold text-xs">
+                <span class="w-7 h-7 rounded-full bg-[#00685f] text-white flex items-center justify-center text-xs">2</span>
+                <span>2. Thanh toán & Xác nhận</span>
+            </div>
+            <div class="w-12 h-0.5 bg-slate-200"></div>
+            <div class="flex items-center gap-2 text-slate-400 font-medium text-xs">
+                <span class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-xs">3</span>
+                <span>3. Hoàn tất</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2-Column Checkout Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Left Column: Details & Payment Methods -->
+        <div class="lg:col-span-7 space-y-6">
+            <!-- Booking Details Card -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <h2 class="text-base font-black text-slate-800">Thông tin Đơn đặt sân</h2>
+                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Đang giữ chỗ</span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">Cụm sân:</span>
+                        <span class="font-bold text-slate-800 text-sm" id="checkoutFacility">Sky Badminton</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">Sân thi đấu:</span>
+                        <span class="font-bold text-slate-800 text-sm" id="checkoutCourt">Sân 1</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">Khung giờ:</span>
+                        <span class="font-bold text-slate-800 text-sm" id="checkoutSlot">17:00 - 18:00</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 block mb-0.5">Ngày chơi:</span>
+                        <span class="font-bold text-slate-800 text-sm" id="checkoutDate">2026-11-10</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú cho chủ sân</label>
+                    <textarea id="checkoutNote" rows="2" placeholder="Ví dụ: Đặt thêm 2 chai nước khoáng, yêu cầu bật máy lạnh sớm..."
+                              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00685f]"></textarea>
+                </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
+                <h2 class="text-base font-black text-slate-800">Phương thức thanh toán</h2>
+                
+                <div class="space-y-3">
+                    <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-[#00685f] bg-[#00685f]/5 cursor-pointer">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[#00685f] text-[24px]">qr_code_2</span>
+                            <div>
+                                <span class="font-bold text-xs text-slate-800 block">Chuyển khoản VietQR / Napas 247</span>
+                                <span class="text-[10px] text-slate-500">Tự động đối soát đơn trong 1 phút</span>
+                            </div>
+                        </div>
+                        <input type="radio" name="payMethod" value="QR" checked class="text-[#00685f]" />
+                    </label>
+
+                    <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-[#00685f] text-[24px]">account_balance_wallet</span>
+                            <div>
+                                <span class="font-bold text-xs text-slate-800 block">Ví CourtSide (Số dư: 1.250.000đ)</span>
+                                <span class="text-[10px] text-emerald-600 font-semibold">Ưu đãi giảm thêm 5% cước sân</span>
+                            </div>
+                        </div>
+                        <input type="radio" name="payMethod" value="Wallet" class="text-[#00685f]" />
+                    </label>
+
+                    <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition-colors">
+                        <div class="flex items-center gap-3">
+                            <span class="material-symbols-outlined text-slate-500 text-[24px]">payments</span>
+                            <div>
+                                <span class="font-bold text-xs text-slate-800 block">Thanh toán tại quầy sân</span>
+                                <span class="text-[10px] text-slate-500">Thanh toán tiền mặt hoặc quẹt thẻ khi đến nhận sân</span>
+                            </div>
+                        </div>
+                        <input type="radio" name="payMethod" value="Cash" class="text-[#00685f]" />
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Order Summary & Instant QR -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-5">
+                <h3 class="text-base font-black text-slate-800">Tóm tắt thanh toán</h3>
+
+                <div class="space-y-2.5 text-xs text-slate-600">
+                    <div class="flex items-center justify-between">
+                        <span>Giá thuê sân (1 ca):</span>
+                        <span class="font-bold text-slate-800" id="summaryBasePrice">0đ</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Phí dịch vụ nền tảng:</span>
+                        <span class="text-emerald-600 font-bold">Miễn phí (0đ)</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span>Giảm giá khuyến mãi:</span>
+                        <span class="text-slate-400">0đ</span>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                        <span class="text-sm font-bold text-slate-800">Tổng thanh toán:</span>
+                        <span class="text-2xl font-black text-[#00685f]" id="summaryTotalPrice">0đ</span>
+                    </div>
+                </div>
+
+                <!-- VietQR Box -->
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col items-center text-center">
+                    <span class="text-[10px] font-bold uppercase text-slate-400 mb-2 tracking-wider">Quét mã chuyển khoản tức thì</span>
+                    <div class="w-44 h-44 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center">
+                        <img id="vietqrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=COURTSIDE-BOOKING" 
+                             class="w-full h-full object-contain" alt="QR Code Thanh toán" />
+                    </div>
+                    <div class="mt-3 text-[11px] text-slate-600">
+                        <p class="font-bold text-slate-800">MB BANK: 999988887777</p>
+                        <p class="text-slate-500">Chủ TK: CTY CP COURTSIDE VIETNAM</p>
+                        <p class="text-[10px] text-[#00685f] font-mono mt-1 font-bold">Nội dung: CSIDE BK <span id="refCode">2026</span></p>
+                    </div>
+                    <div class="mt-3 text-[10px] text-rose-500 font-semibold flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[14px]">timer</span>
+                        <span>Thời gian giữ chỗ còn: <strong id="countdown">09:59</strong></span>
+                    </div>
+                </div>
+
+                <button onclick="confirmBooking()" id="btnConfirmBooking"
+                        class="w-full py-4 rounded-xl bg-[#00685f] hover:bg-[#008378] text-white font-bold text-sm tracking-wide shadow-xl shadow-[#00685f]/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">check_circle</span>
+                    <span>Xác nhận & Hoàn tất Đặt sân</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const params = new URLSearchParams(window.location.search);
+    const facilityId = params.get("facilityId");
+    const courtId = params.get("courtId");
+    const slotId = params.get("slotId");
+    const playDate = params.get("playDate");
+    const facilityName = params.get("facilityName");
+    const courtName = params.get("courtName");
+    const slotName = params.get("slotName");
+    const price = parseFloat(params.get("price") || 0);
+
+    document.addEventListener("DOMContentLoaded", function () {
+        if (!AuthManager.requireAuth()) return;
+
+        if (!courtId || !slotId) {
+            alert("Thông tin đặt sân không hợp lệ!");
+            window.location.href = "/Player/Facilities";
+            return;
+        }
+
+        document.getElementById("checkoutFacility").textContent = facilityName || "Cụm sân";
+        document.getElementById("checkoutCourt").textContent = courtName || "Sân con";
+        document.getElementById("checkoutSlot").textContent = slotName || "";
+        document.getElementById("checkoutDate").textContent = formatDate(playDate);
+        document.getElementById("summaryBasePrice").textContent = formatCurrency(price);
+        document.getElementById("summaryTotalPrice").textContent = formatCurrency(price);
+
+        const randomRef = Math.floor(1000 + Math.random() * 9000);
+        document.getElementById("refCode").textContent = randomRef;
+        document.getElementById("vietqrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=COURTSIDE-BK${randomRef}-${price}`;
+
+        // Countdown timer 10 phút
+        let timeLeft = 600;
+        const countdownEl = document.getElementById("countdown");
+        const timer = setInterval(() => {
+            timeLeft--;
+            const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+            const secs = String(timeLeft % 60).padStart(2, "0");
+            countdownEl.textContent = `${mins}:${secs}`;
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                Swal.fire({
+                    icon: "warning",
+                    title: "Hết thời gian giữ chỗ",
+                    text: "Vui lòng chọn lại sân để tiếp tục.",
+                    confirmButtonColor: "#00685f"
+                }).then(() => {
+                    window.location.href = `/Player/FacilityDetail?id=${facilityId}`;
+                });
+            }
+        }, 1000);
+    });
+
+    async function confirmBooking() {
+        const btn = document.getElementById("btnConfirmBooking");
+        btn.disabled = true;
+        btn.innerHTML = `
+            <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+            <span>Đang ghi nhận đơn...</span>
+        `;
+
+        try {
+            const bookingPayload = {
+                courtId: parseInt(courtId),
+                timeSlotId: parseInt(slotId),
+                playDate: playDate,
+                note: document.getElementById("checkoutNote").value.trim() || "Đặt sân trên CourtSide"
+            };
+
+            const res = await callApi("/api/bookings", {
+                method: "POST",
+                data: bookingPayload
+            });
+
+            Swal.fire({
+                icon: "success",
+                title: "Đặt sân thành công!",
+                text: `Mã đơn đặt: #BK-${res.id}. Trạng thái: ${res.status}. Vui lòng theo dõi trong mục 'Lịch đặt của tôi'.`,
+                confirmButtonColor: "#00685f"
+            }).then(() => {
+                window.location.href = "/Player/MyBookings";
+            });
+
+        } catch (err) {
+            Swal.fire({
+                icon: "error",
+                title: "Đặt sân không thành công",
+                text: err.message || "Ca giờ có thể vừa bị người khác đặt.",
+                confirmButtonColor: "#00685f"
+            });
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-outlined text-lg">check_circle</span><span>Xác nhận & Hoàn tất Đặt sân</span>`;
+        }
+    }
+</script>
+}
+

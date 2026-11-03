@@ -1,0 +1,250 @@
+@page
+@{
+    Layout = "_ProviderLayout";
+    ViewData["Title"] = "Quản lý Cơ sở Cầu lông của tôi";
+}
+
+<div class="space-y-6">
+    <!-- Top Actions Bar -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-black text-slate-800">Danh sách Cơ sở Cầu lông</h2>
+            <p class="text-xs text-slate-500">Quản lý và cập nhật thông tin các chi nhánh cơ sở bạn sở hữu</p>
+        </div>
+        <button onclick="openCreateModal()" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+            <span>Thêm cơ sở mới</span>
+        </button>
+    </div>
+
+    <!-- Facilities List Grid -->
+    <div id="providerFacilityList" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="col-span-full py-16 text-center text-slate-400">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#00685f] border-t-transparent"></div>
+            <p class="text-xs mt-3">Đang tải danh sách cơ sở...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm / Chỉnh sửa Cơ sở -->
+<div id="facilityModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-slate-100">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <h3 class="text-lg font-bold text-slate-800" id="modalTitle">Thêm cơ sở mới</h3>
+            <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
+                <span class="material-symbols-outlined text-[20px]">close</span>
+            </button>
+        </div>
+
+        <form id="facilityForm" class="space-y-4">
+            <input type="hidden" id="facilityIdInput" />
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên cơ sở</label>
+                <input type="text" id="facName" required placeholder="Ví dụ: Sân Cầu Lông Sky Quận 7"
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Quận / Huyện</label>
+                    <input type="text" id="facDistrict" required placeholder="Quận 7"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số điện thoại</label>
+                    <input type="tel" id="facPhone" required placeholder="0901234567"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Địa chỉ chi tiết</label>
+                <input type="text" id="facAddress" required placeholder="79 Nguyễn Văn Linh, P. Tân Phú"
+                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Giờ mở cửa</label>
+                    <input type="time" id="facOpenTime" required value="05:00"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Giờ đóng cửa</label>
+                    <input type="time" id="facCloseTime" required value="23:00"
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mô tả tiện ích</label>
+                <textarea id="facDescription" rows="2" placeholder="Có máy lạnh, bãi đỗ xe ô tô, căn tin..."
+                          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none"></textarea>
+            </div>
+
+            <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+                <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Hủy</button>
+                <button type="submit" id="btnSaveFacility" class="bg-[#00685f] hover:bg-[#008378] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md">Lưu thông tin</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    async function loadProviderFacilities() {
+        const container = document.getElementById("providerFacilityList");
+        try {
+            // Lấy danh sách cơ sở (API tự lọc theo ProviderId trong JWT)
+            const facilities = await callApi("/api/facilities");
+
+            if (!facilities || facilities.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-16 text-center bg-white rounded-3xl border border-dashed border-slate-200">
+                        <span class="material-symbols-outlined text-[48px] text-slate-300">stadium</span>
+                        <p class="text-slate-600 font-bold text-sm mt-2">Bạn chưa đăng ký cơ sở cầu lông nào.</p>
+                        <p class="text-xs text-slate-400 mt-1">Bấm "Thêm cơ sở mới" ở trên để bắt đầu tiếp cận hàng ngàn khách hàng.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = facilities.map(f => {
+                let statusBadge = "";
+                if (f.status === "Approved") statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã duyệt (Active)</span>`;
+                else if (f.status === "Pending") statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Chờ duyệt (Pending)</span>`;
+                else if (f.status === "Suspended") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Tạm dừng (Suspended)</span>`;
+
+                return `
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between p-6">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-slate-400">ID: #${f.id}</span>
+                                ${statusBadge}
+                            </div>
+                            <h3 class="font-extrabold text-base text-slate-800 line-clamp-1">${f.name}</h3>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${f.address}, ${f.district}</p>
+                            <div class="mt-4 space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-400">Giờ hoạt động:</span>
+                                    <span class="font-semibold">${formatTime(f.openTime)} - ${formatTime(f.closeTime)}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-slate-400">Số điện thoại:</span>
+                                    <span class="font-semibold">${f.phone}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="pt-5 border-t border-slate-100 mt-5 space-y-2">
+                            <a href="/Provider/CourtsAndSlots?facilityId=${f.id}" class="w-full bg-[#00685f]/10 hover:bg-[#00685f]/20 text-[#00685f] py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                                <span class="material-symbols-outlined text-[16px]">tune</span>
+                                <span>Quản lý Sân & Khung giờ</span>
+                            </a>
+                            <div class="flex items-center gap-2">
+                                <button onclick='openEditModal(${JSON.stringify(f)})' class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold transition-colors">
+                                    Sửa
+                                </button>
+                                <button onclick="deleteFacility(${f.id})" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 py-2 rounded-xl text-xs font-semibold transition-colors">
+                                    Xóa
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+
+        } catch (err) {
+            console.error("Lỗi:", err);
+            container.innerHTML = `<div class="col-span-full py-12 text-center text-rose-500 text-xs">Lỗi: ${err.message}</div>`;
+        }
+    }
+
+    function openCreateModal() {
+        document.getElementById("modalTitle").textContent = "Thêm cơ sở mới";
+        document.getElementById("facilityIdInput").value = "";
+        document.getElementById("facilityForm").reset();
+        document.getElementById("facilityModal").classList.remove("hidden");
+        document.getElementById("facilityModal").classList.add("flex");
+    }
+
+    function openEditModal(f) {
+        document.getElementById("modalTitle").textContent = "Chỉnh sửa cơ sở";
+        document.getElementById("facilityIdInput").value = f.id;
+        document.getElementById("facName").value = f.name;
+        document.getElementById("facDistrict").value = f.district;
+        document.getElementById("facPhone").value = f.phone;
+        document.getElementById("facAddress").value = f.address;
+        document.getElementById("facOpenTime").value = formatTime(f.openTime);
+        document.getElementById("facCloseTime").value = formatTime(f.closeTime);
+        document.getElementById("facDescription").value = f.description || "";
+        document.getElementById("facilityModal").classList.remove("hidden");
+        document.getElementById("facilityModal").classList.add("flex");
+    }
+
+    function closeModal() {
+        document.getElementById("facilityModal").classList.add("hidden");
+        document.getElementById("facilityModal").classList.remove("flex");
+    }
+
+    document.getElementById("facilityForm").addEventListener("submit", async function (e) {
+        e.preventDefault();
+        const id = document.getElementById("facilityIdInput").value;
+        const payload = {
+            name: document.getElementById("facName").value.trim(),
+            district: document.getElementById("facDistrict").value.trim(),
+            phone: document.getElementById("facPhone").value.trim(),
+            address: document.getElementById("facAddress").value.trim(),
+            openTime: document.getElementById("facOpenTime").value + ":00",
+            closeTime: document.getElementById("facCloseTime").value + ":00",
+            description: document.getElementById("facDescription").value.trim()
+        };
+
+        try {
+            if (id) {
+                await callApi(`/api/facilities/${id}`, {
+                    method: "PUT",
+                    data: payload
+                });
+                Swal.fire({ icon: "success", title: "Cập nhật thành công!", timer: 1500, showConfirmButton: false });
+            } else {
+                await callApi("/api/facilities", {
+                    method: "POST",
+                    data: payload
+                });
+                Swal.fire({ icon: "success", title: "Tạo cơ sở thành công! Đang chờ Admin duyệt.", timer: 2000, showConfirmButton: false });
+            }
+            closeModal();
+            loadProviderFacilities();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    });
+
+    async function deleteFacility(id) {
+        const confirm = await Swal.fire({
+            title: "Xác nhận xóa cơ sở?",
+            text: "Cơ sở này sẽ bị xóa khỏi hệ thống nếu chưa có đơn đặt sân.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#ba1a1a",
+            cancelButtonColor: "#6d7a77",
+            confirmButtonText: "Đồng ý xóa",
+            cancelButtonText: "Hủy"
+        });
+
+        if (!confirm.isConfirmed) return;
+
+        try {
+            await callApi(`/api/facilities/${id}`, { method: "DELETE" });
+            Swal.fire({ icon: "success", title: "Đã xóa!", timer: 1500, showConfirmButton: false });
+            loadProviderFacilities();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Không thể xóa", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadProviderFacilities);
+</script>
+}
+
