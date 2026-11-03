@@ -3,7 +3,7 @@
  * Đồng bộ với ASP.NET Core Web API, OData v8 và Content Negotiation
  */
 
-const API_BASE_URL = window.API_BASE_URL || "https://localhost:7186";
+const API_BASE_URL = window.API_BASE_URL || "http://localhost:6789";
 
 // 1. Quản lý Authentication Session qua localStorage
 const AuthManager = {

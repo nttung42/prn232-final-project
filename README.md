@@ -1,7 +1,7 @@
 # CourtSide - Badminton Booking System 🏸
 
 > **Đồ án môn học PRN232 (.NET Web Application Development)**  
-> Hệ thống quản lý và đặt sân cầu lông trực tuyến theo kiến trúc N-Tier / Clean Architecture, tích hợp OData v8, Ví điện tử VietQR và Cloudflare R2 Image Storage.
+> Hệ thống quản lý và đặt sân cầu lông trực tuyến dành cho chủ sân và người chơi, tích hợp thanh toán VietQR Napas247, lưu trữ ảnh Cloudflare R2, xuất báo cáo đa định dạng (CSV, XML, JSON) và hỗ trợ OData v8.
 
 ---
 
@@ -72,7 +72,7 @@ Tại thư mục gốc dự án:
 ```bash
 dotnet run --project src/BadmintonBooking.WebAPI
 ```
-- **Swagger UI**: [https://localhost:7186](https://localhost:7186)
+- **Swagger UI**: [http://localhost:6789](http://localhost:6789)
 - Khi khởi động lần đầu, hệ thống sẽ **tự động áp dụng Migration và Seed dữ liệu mẫu**.
 
 ### 4. Chạy Frontend (WebClient)
@@ -80,7 +80,7 @@ Mở một cửa sổ Terminal mới:
 ```bash
 dotnet run --project src/BadmintonBooking.WebClient
 ```
-- **Web App**: [https://localhost:7287](https://localhost:7287) hoặc [http://localhost:5021](http://localhost:5021)
+- **Web App**: [http://localhost:3456](http://localhost:3456)
 
 ---
 

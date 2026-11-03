@@ -1,4 +1,4 @@
-@BadmintonBooking.WebAPI_HostAddress = http://localhost:5095
+@BadmintonBooking.WebAPI_HostAddress = http://localhost:6789
 
 GET {{BadmintonBooking.WebAPI_HostAddress}}/weatherforecast/
 Accept: application/json
