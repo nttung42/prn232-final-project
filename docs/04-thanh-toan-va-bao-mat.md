@@ -69,10 +69,15 @@ Quyền xác nhận: nạp ví chỉ **Admin**; đơn đặt sân là **Admin** 
 
 | Từ | Đến | Ai được thực hiện |
 | :--- | :--- | :--- |
-| `Pending` | `Confirmed`, `Cancelled` | Provider (cơ sở của mình), Admin |
-| `Confirmed` | `Completed`, `Cancelled` | Provider (cơ sở của mình), Admin |
+| `Pending` | `Confirmed`, `Cancelled` | Provider (cơ sở của mình, duyệt hoặc từ chối), Admin |
+| `Confirmed` | `Cancelled` | Admin (ngoại lệ vận hành) |
+| `Confirmed` | `Completed` | Hệ thống tự động sau giờ kết thúc + 5 phút (`PaymentExpiryService`) |
 | `Pending` | `Cancelled` | Player (đơn của mình) |
 | `Cancelled`, `Completed` | — | Không đổi được |
+
+- Provider **không** hủy hoặc chuyển tay đơn đã duyệt (`Confirmed`). Giao diện chỉ hiện nút "Hủy" với đơn chờ duyệt, và API trả `400` nếu gọi trái quy tắc.
+- Player chỉ hủy được đơn đang `Pending`. Đơn `Confirmed` hiển thị "Không thể hủy".
+- Sân được trả trống khi đơn `Confirmed` đã qua giờ kết thúc + 5 phút, kể cả khi chưa `Completed` (job tự chuyển sang `Completed`).
 
 Trạng thái gửi lên phải thuộc `Pending`, `Confirmed`, `Cancelled`, `Completed`; giá trị khác bị từ chối.
 
@@ -118,6 +123,10 @@ Seed__PlayerPassword="<tối thiểu 8 ký tự>"
 ```
 
 Cấu hình không bí mật trong `appsettings.json`: `Cors:AllowedOrigins`, `VietQr` (ngân hàng và số tài khoản nhận tiền), `CloudflareR2` (bucket, domain công khai; khóa truy cập để trống hoặc đặt qua biến môi trường).
+
+**Object storage cho ảnh (local):** dự án dùng MinIO qua giao thức S3 (`CloudflareR2StorageService`). Chạy `powershell -File scripts/minio.ps1` để khởi động container, sinh khóa vào `.env` (đã gitignore) và tạo bucket `courtside-uploads` cho phép đọc công khai. Các khóa `CloudflareR2__*` được ghi vào `.env`: `ServiceUrl=http://localhost:9000`, `PublicDomain=http://localhost:9000/courtside-uploads`, `AccountId=local`. Trên Cloudflare R2 thật, đổi ba giá trị này sang endpoint và domain của R2.
+
+Lưu ý: SDK 4.x không tính checksum khi không bắt buộc (`WHEN_REQUIRED`), và không dùng `DisablePayloadSigning` vì cờ này yêu cầu HTTPS.
 
 ---
 

@@ -197,7 +197,8 @@ Mọi request thay đổi dữ liệu (`POST`, `PUT`, `PATCH`, `DELETE`) phải 
 | `GET` | `/api/wallet/transactions` | Authenticated | Lịch sử giao dịch ví của người dùng hiện tại. |
 | `POST` | `/api/wallet/topup` | Authenticated | Tạo giao dịch nạp tiền `Pending` và mã VietQR. |
 | `GET` | `/api/wallet/admin/pending-topups` | `Admin` | Danh sách giao dịch nạp đang chờ đối soát. |
-| `POST` | `/api/wallet/confirm-topup/{transactionId}` | `Admin` | Xác nhận đã nhận tiền, cộng số dư ví. Người chơi không tự xác nhận được. |
+| `POST` | `/api/payments/{code}/confirm` | `Admin` (nạp ví) | Xác nhận đã nhận tiền theo mã đơn, cộng số dư ví. Endpoint `confirm-topup` cũ đã bỏ. |
+| `POST` | `/api/payments/{code}/reject` | `Admin`, `Provider` (đơn của cơ sở) | Từ chối đơn chờ. Với nạp ví, đơn đóng và giao dịch nạp bị hủy, không cộng tiền. |
 | `POST` | `/api/wallet/pay-booking` | Authenticated (chủ đơn) | Thanh toán đơn đặt sân bằng số dư ví, đơn chuyển sang `Confirmed`. |
 
 Chi tiết quy tắc tiền và đối soát xem `docs/04-thanh-toan-va-bao-mat.md`.
@@ -237,7 +238,7 @@ Chi tiết quy tắc tiền và đối soát xem `docs/04-thanh-toan-va-bao-mat.
 | `GET` | `/api/bookings` | `Admin`, `Provider`, `Player` | **[GET ALL + OData + CSV/XML/JSON]** Lấy danh sách đơn (Player thấy đơn của mình; Provider thấy đơn tại cơ sở của mình; Admin thấy toàn bộ). |
 | `GET` | `/api/bookings/{id}` | `Admin`, `Provider`, `Player` | **[GET BY ID]** Xem chi tiết 1 đơn đặt sân. |
 | `POST` | `/api/bookings` | `Player` | **[POST]** Đặt sân mới (Validate trùng lịch, tính `TotalPrice`). |
-| `PUT` | `/api/bookings/{id}` | `Provider`, `Player` | **[PUT]** Cập nhật ghi chú hoặc đổi trạng thái đơn (`Confirmed`, `Cancelled`, `Completed`). |
+| `PUT` | `/api/bookings/{id}` | `Provider`, `Player`, `Admin` | **[PUT]** Cập nhật ghi chú hoặc đổi trạng thái. Provider chỉ duyệt (`Pending` → `Confirmed`) hoặc từ chối đơn chờ; đơn `Confirmed` không hủy và không chuyển tay sang `Completed` (hệ thống tự hoàn thành). Player chỉ hủy đơn `Pending`. |
 | `DELETE` | `/api/bookings/{id}` | `Admin`, `Player` | **[DELETE]** Xóa đơn đặt sân (chỉ cho phép khi đơn ở trạng thái `Pending` hoặc `Cancelled`). |
 
 ### 3.6. Nhóm API Quản trị Người dùng (`UsersController`) — *Hỗ trợ OData*
@@ -322,16 +323,17 @@ Client được tổ chức thành các phân hệ rõ ràng, sử dụng `Fetch
 2. **Player Site (`/Player/...`):**
    * `/Player/Index`: Trang chủ tìm kiếm & lọc cơ sở cầu lông (gọi AJAX OData `/api/facilities?$filter=...`).
    * `/Player/FacilityDetail?id={id}`: Xem chi tiết cơ sở, chọn ngày `PlayDate`, xem lưới Sân (`Court`) $\times$ Khung giờ (`TimeSlot`) và bấm **Đặt sân** (`POST /api/bookings` qua AJAX).
-   * `/Player/MyBookings`: Xem danh sách lịch sử đặt sân của bản thân và nút **Hủy đặt sân** (`PUT /api/bookings/{id}` qua AJAX).
+   * `/Player/MyBookings`: Xem danh sách lịch sử đặt sân của bản thân. Nút **Hủy sân** chỉ hiện với đơn đang chờ duyệt (`PUT /api/bookings/{id}` qua AJAX); đơn đã duyệt hiển thị "Không thể hủy".
 3. **Provider Site (`/Provider/...`):**
    * `/Provider/Facilities`: Quản lý danh sách cơ sở cầu lông của mình (Thêm/Sửa/Xóa bằng Modal + AJAX CRUD).
    * `/Provider/CourtsAndSlots?facilityId={id}`: Quản lý Sân con (`Courts`) và Khung giờ giá (`TimeSlots`) trên cùng giao diện trực quan bằng AJAX.
-   * `/Provider/Bookings`: Quản lý đơn đặt sân của khách hàng, lọc theo ngày/trạng thái bằng OData, bấm Duyệt/Hủy/Hoàn thành đơn và **Xuất báo cáo CSV/XML/JSON** (Demo Content Negotiation).
+   * `/Provider/Bookings`: Quản lý đơn đặt sân của khách hàng, lọc theo ngày/trạng thái bằng OData, bấm **Duyệt** với đơn chờ duyệt, **Hủy** với đơn chờ duyệt, và **Xuất báo cáo CSV/XML/JSON** (Demo Content Negotiation). Đơn đã duyệt không có nút hủy hay hoàn thành; hệ thống tự chuyển sang "Hoàn tất" sau giờ kết thúc + 5 phút.
+   * `/Provider/CourtsAndSlots`: Ngoài quản lý sân và khung giờ, có mục **Lịch đặt sân theo ngày** (7 ngày tới): lưới sân × ca giờ hiển thị Trống, Chờ duyệt (bấm để duyệt) và Đã đặt (bấm để xem chi tiết).
 4. **Admin Site (`/Admin/...`):**
    * `/Admin/Dashboard`: Thống kê tổng quan toàn sàn.
    * `/Admin/Facilities`: Kiểm duyệt các cơ sở cầu lông (`Approve` / `Reject` / `Suspend`) bằng AJAX.
    * `/Admin/Users`: Quản lý người dùng toàn hệ thống (Lọc OData, Khóa/Mở khóa tài khoản, Xóa người dùng có xác nhận; nếu tài khoản đã có đơn đặt hoặc cơ sở thì chỉ vô hiệu hóa).
-   * `/Admin/Topups`: Đối soát nạp ví. Liệt kê giao dịch nạp đang `Pending`, Admin xác nhận đã nhận tiền để cộng số dư ví.
+   * `/Admin/Topups`: Đối soát chuyển khoản. Tab "Chờ đối soát" liệt kê nạp ví và đơn đặt sân đang `Pending`/`Held`; admin xác nhận đã nhận tiền để cộng số dư ví hoặc ghi doanh thu, và từ chối khi cần. Tab "Lịch sử đối soát" giữ lại các đơn đã xác nhận, kèm người xác nhận và thời gian.
 
 ### 5.2. Chuẩn hóa Hàm Gọi AJAX Chung (`site-api.js`)
 ```javascript
