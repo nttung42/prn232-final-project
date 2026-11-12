@@ -39,17 +39,7 @@ foreach ($line in $lines) {
     $g.FillRectangle((New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(230, 255, 255, 255))), 596, 100, 8, 440)
 
     # Chữ
-    # Chữ căn giữa, nằm trong vùng giữa ảnh để không bị cắt khi thẻ hiển thị ảnh theo tỷ lệ khác
-    $title = New-Object System.Drawing.Font 'Segoe UI', 34, ([System.Drawing.FontStyle]::Bold), ([System.Drawing.GraphicsUnit]::Pixel)
-    $sub = New-Object System.Drawing.Font 'Segoe UI', 24, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
-    $ink = [System.Drawing.ColorTranslator]::FromHtml($pal[0])
-    $center = New-Object System.Drawing.StringFormat
-    $center.Alignment = 'Center'
-    $center.LineAlignment = 'Near'
-    $titleRect = New-Object System.Drawing.RectangleF 150, 552, 900, 60
-    $g.DrawString($name, $title, (New-Object System.Drawing.SolidBrush $ink), $titleRect, $center)
-    $subRect = New-Object System.Drawing.RectangleF 150, 612, 900, 40
-    $g.DrawString("Quận $district  ·  Ảnh minh họa demo", $sub, (New-Object System.Drawing.SolidBrush ([System.Drawing.Color]::FromArgb(160, 0, 0, 0))), $subRect, $center)
+    # Không vẽ chữ lên ảnh: tên cơ sở đã hiển thị trên thẻ, tránh chữ bị trùng và lỗi mã hóa tiếng Việt
 
     $out = Join-Path $OutDir "$id.png"
     $bmp.Save($out, [System.Drawing.Imaging.ImageFormat]::Png)

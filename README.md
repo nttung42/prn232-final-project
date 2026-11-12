@@ -1,7 +1,7 @@
 # CourtSide - Badminton Booking System 🏸
 
 > **Đồ án môn học PRN232 (.NET Web Application Development)**  
-> Hệ thống quản lý và đặt sân cầu lông trực tuyến dành cho chủ sân và người chơi, tích hợp thanh toán VietQR Napas247, lưu trữ ảnh Cloudflare R2, xuất báo cáo đa định dạng (CSV, XML, JSON) và hỗ trợ OData v8.
+> Hệ thống quản lý và đặt sân cầu lông trực tuyến dành cho chủ sân và người chơi, tích hợp thanh toán VietQR Napas247, lưu trữ ảnh object storage (MinIO local hoặc Cloudflare R2), xuất báo cáo đa định dạng (CSV, XML, JSON) và hỗ trợ OData v8.
 
 ---
 
@@ -11,7 +11,7 @@
 | :--- | :--- |
 | **Backend** | .NET 8.0 Web API, Entity Framework Core 8.0 (Code First, SQL Server), OData v8 |
 | **Bảo mật** | JWT (lưu trong cookie HttpOnly), BCrypt.Net-Next (mã hóa mật khẩu), chống CSRF bằng header, giới hạn tốc độ, chống XSS. Chi tiết: `docs/04-thanh-toan-va-bao-mat.md` |
-| **Tích hợp** | VietQR (chuẩn Napas247 QuickLink), Cloudflare R2 Storage (AWS S3 SDK) |
+| **Tích hợp** | VietQR (chuẩn Napas247 QuickLink), Object storage S3-compatible (AWS S3 SDK): MinIO local hoặc Cloudflare R2 |
 | **Frontend** | ASP.NET Core Razor Pages 8.0, Tailwind CSS, Lucide Icons, JavaScript (Fetch API) |
 | **Định dạng dữ liệu** | Content Negotiation (JSON, CSV, XML) qua HTTP Accept Headers |
 
@@ -44,9 +44,10 @@ BadmintonBookingSystem/
 3. **Ví điện tử CourtSide & VietQR**:
    - Tự động sinh mã VietQR Napas247 quét thanh toán tức thì qua ứng dụng ngân hàng.
    - Nạp tiền, trừ ví thanh toán đơn đặt sân và hoàn tiền khi hủy lịch.
-4. **Quản lý & Tải ảnh Cloudflare R2**:
+4. **Object storage cho ảnh (MinIO local / Cloudflare R2)**:
    - Lưu trữ thư viện ảnh cơ sở dưới định dạng JSON (`GalleryImagesJson`).
-   - Tải ảnh trực tiếp lên Cloudflare R2 bucket `prn232_bucket` (kèm cơ chế fallback an toàn lưu cục bộ).
+   - Ảnh được upload qua giao thức S3: trên máy local dùng MinIO (`scripts/minio.ps1`), trên production dùng Cloudflare R2. Chỉ đổi cấu hình `CloudflareR2__*`.
+   - Nếu lưu trữ lỗi, hệ thống dự phòng lưu cục bộ trong `wwwroot/uploads`.
 5. **OData v8 & Xuất báo cáo đa định dạng**:
    - Lọc dữ liệu chuẩn OData: `$filter`, `$orderby`, `$top`, `$skip`.
    - Xuất dữ liệu báo cáo đơn đặt sân linh hoạt theo 3 định dạng: CSV, XML, JSON.
@@ -99,3 +100,11 @@ dotnet run --project src/BadmintonBooking.WebClient
 | **Người chơi (Player)** | `player1@badminton.com` | `Player@123` |
 
 Mật khẩu demo dùng cho môi trường local. Có thể ghi đè khi seed bằng `Seed:AdminPassword`, `Seed:ProviderPassword`, `Seed:PlayerPassword` (biến môi trường `Seed__...`). Mật khẩu chỉ được áp dụng khi database chưa có user.
+
+Dữ liệu seed gồm 18 cơ sở demo ở Hà Nội (17 đã duyệt, 1 chờ duyệt), 49 sân con và khung giờ riêng cho từng sân. Tên cơ sở, địa chỉ, số điện thoại và tên chủ sân đều là dữ liệu bịa cho dự án local, không phải thông tin thật. Ảnh cơ sở là ảnh minh họa.
+
+### 5. Object storage (MinIO) và seed demo bổ sung
+- Khởi động MinIO local và tạo bucket công khai: `powershell -File scripts/minio.ps1`. Script sinh khóa vào `.env` (đã gitignore).
+- Thêm cơ sở demo qua API (không xóa dữ liệu hiện có): `bash scripts/seed-hanoi-demo.sh <mật_khẩu_admin>`.
+- Gắn ảnh minh họa riêng cho từng cơ sở: `bash scripts/set-facility-images.sh <mật_khẩu_admin>` (tạo ảnh PNG, upload lên MinIO, cập nhật `imageUrl`).
+- Để seed lại từ đầu, xóa database `BadmintonBookingDB_v2` rồi khởi động API. Lệnh này xóa toàn bộ dữ liệu local.

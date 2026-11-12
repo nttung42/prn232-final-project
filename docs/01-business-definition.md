@@ -56,7 +56,8 @@ Hệ thống bao gồm **3 phân hệ giao diện (3 Sites)** giao tiếp với 
   * Thêm, sửa, xóa khung giờ thuộc cơ sở của mình.
 * **UC-V04: Quản lý Đơn đặt sân tại Cơ sở (`Booking Management`)**
   * Xem danh sách toàn bộ đơn đặt sân của khách hàng tại các cơ sở do mình làm chủ (hỗ trợ lọc theo ngày, trạng thái, sân bằng OData).
-  * Cập nhật trạng thái đơn: Xác nhận (`Confirmed`), Từ chối/Hủy (`Cancelled`), Hoàn thành (`Completed`).
+  * Duyệt đơn chờ (`Pending` → `Confirmed`) hoặc từ chối đơn chờ (`Cancelled`). Đơn đã duyệt không thể hủy hay chuyển tay; trạng thái `Completed` do hệ thống tự cập nhật sau giờ kết thúc + 5 phút.
+  * Xem lịch đặt theo ngày của từng sân con (Trống / Chờ duyệt / Đã đặt) và duyệt ngay từ bảng lịch.
 * **UC-V05: Xuất dữ liệu Đơn đặt sân (Ứng dụng Content Negotiation / Media Formatter)**
   * Xuất danh sách đơn đặt sân ra định dạng CSV / XML / JSON để đối soát doanh thu.
 
@@ -115,7 +116,7 @@ sequenceDiagram
     System->>System: 6. Kiểm tra trùng lịch (Court + TimeSlot + PlayDate)
     System-->>Player: 7. Tạo đơn thành công [Status = Pending]
     Provider->>System: 8. Xác nhận đơn đặt [Status = Confirmed]
-    Provider->>System: 9. Hoàn tất ca chơi [Status = Completed]
+    System->>System: 9. Sau giờ kết thúc + 5 phút tự động chuyển [Status = Completed], trả sân trống
 ```
 
 ---
@@ -136,6 +137,6 @@ sequenceDiagram
    * `Player` chỉ được phép chuyển trạng thái đơn của mình từ `Pending` $\rightarrow$ `Cancelled`.
    * `Provider` được phép chuyển trạng thái đơn tại cơ sở của mình:
      * `Pending` $\rightarrow$ `Confirmed` hoặc `Cancelled`.
-     * `Confirmed` $\rightarrow$ `Completed` hoặc `Cancelled`.
+     * `Confirmed` không chuyển tay được (không hủy, không `Completed`). Hệ thống tự chuyển `Confirmed` $\rightarrow$ `Completed` sau giờ kết thúc + 5 phút.
    * Đơn đã ở trạng thái `Cancelled` hoặc `Completed` là trạng thái cuối, không thể chỉnh sửa trạng thái được nữa.
 
