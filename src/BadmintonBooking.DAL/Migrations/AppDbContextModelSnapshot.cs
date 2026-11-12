@@ -250,6 +250,12 @@ namespace BadmintonBooking.DAL.Migrations
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
 
+                    b.Property<DateTime?>("ConfirmedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("ConfirmedByUserId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -259,10 +265,22 @@ namespace BadmintonBooking.DAL.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<decimal>("PlatformFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ProviderAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("Purpose")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ReversedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SettledAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -292,6 +310,9 @@ namespace BadmintonBooking.DAL.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CourtId")
+                        .HasColumnType("int");
+
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
@@ -318,6 +339,8 @@ namespace BadmintonBooking.DAL.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("FacilityId");
+
+                    b.HasIndex("CourtId", "StartTime");
 
                     b.ToTable("TimeSlots");
                 });
@@ -524,11 +547,19 @@ namespace BadmintonBooking.DAL.Migrations
 
             modelBuilder.Entity("BadmintonBooking.Domain.Entities.TimeSlot", b =>
                 {
+                    b.HasOne("BadmintonBooking.Domain.Entities.Court", "Court")
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("BadmintonBooking.Domain.Entities.Facility", "Facility")
                         .WithMany("TimeSlots")
                         .HasForeignKey("FacilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Court");
 
                     b.Navigation("Facility");
                 });

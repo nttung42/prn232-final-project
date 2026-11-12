@@ -8,9 +8,9 @@
     <!-- Facility Selector Header -->
     <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider text-[#00685f]">Chọn cơ sở quản lý</span>
+            <span class="text-[11px] font-bold uppercase tracking-wider text-[#06525c]">Chọn cơ sở quản lý</span>
             <div class="flex items-center gap-3 mt-1">
-                <select id="facilitySelect" onchange="onFacilityChange()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00685f] min-w-[280px]">
+                <select id="facilitySelect" onchange="onFacilityChange()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#06525c] min-w-[280px]">
                     <option value="">Đang tải danh sách cơ sở...</option>
                 </select>
             </div>
@@ -27,7 +27,7 @@
                         <h3 class="text-base font-black text-slate-800">Danh sách Sân con</h3>
                         <p class="text-[11px] text-slate-400">Các sân thi đấu tại cơ sở này</p>
                     </div>
-                    <button onclick="openCourtModal()" class="bg-[#00685f] hover:bg-[#008378] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+                    <button onclick="openCourtModal()" class="bg-[#06525c] hover:bg-[#053f47] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
                         <span class="material-symbols-outlined text-[16px]">add</span>
                         <span>Thêm sân</span>
                     </button>
@@ -47,7 +47,7 @@
                         <h3 class="text-base font-black text-slate-800">Khung giờ & Bảng giá</h3>
                         <p class="text-[11px] text-slate-400">Thiết lập các ca giờ và giá thuê sân</p>
                     </div>
-                    <button onclick="openSlotModal()" class="bg-[#00685f] hover:bg-[#008378] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
+                    <button onclick="openSlotModal()" class="bg-[#06525c] hover:bg-[#053f47] text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1">
                         <span class="material-symbols-outlined text-[16px]">add</span>
                         <span>Thêm ca giờ</span>
                     </button>
@@ -59,37 +59,52 @@
             </div>
         </div>
     </div>
+
+    <!-- Lịch đặt theo ngày: thấy ngay sân nào đang trống, chờ duyệt hoặc đã có người đặt -->
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 pb-5 border-b border-slate-100">
+            <div>
+                <span class="text-[11px] font-bold uppercase tracking-wider text-[#06525c]">Lịch đặt sân</span>
+                <h3 class="text-xl font-black text-slate-800 mt-0.5">Tình trạng từng sân theo ngày</h3>
+                <p class="text-xs text-slate-400 mt-1">Bấm vào ô đã đặt hoặc chờ duyệt để xem chi tiết. Ô chờ duyệt có thể duyệt ngay.</p>
+            </div>
+            <div id="scheduleDates" class="flex gap-2 overflow-x-auto pb-1"></div>
+        </div>
+        <div id="scheduleBoard" class="pt-5">
+            <div class="py-10 text-center text-slate-400 text-xs">Chọn cơ sở để xem lịch.</div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal Thêm Sân Con -->
 <div id="courtModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+    <div class="cs-card cs-card-pad max-w-sm w-full">
         <h4 class="text-base font-bold text-slate-800 mb-4" id="courtModalTitle">Thêm sân mới</h4>
         <form id="courtForm" class="space-y-3">
             <input type="hidden" id="courtIdInput" />
             <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Tên sân</label>
+                <label class="cs-label">Tên sân</label>
                 <input type="text" id="courtNameInput" required placeholder="Ví dụ: Sân 1 (Thảm VIP)"
-                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                       class="cs-input" />
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Loại thảm sân</label>
-                <select id="courtTypeSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none">
+                <label class="cs-label">Loại thảm sân</label>
+                <select id="courtTypeSelect" class="cs-input">
                     <option value="PVC">Thảm PVC</option>
                     <option value="Wooden">Sàn gỗ thi đấu</option>
                     <option value="Acrylic">Sàn Acrylic chống trượt</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Trạng thái</label>
-                <select id="courtStatusSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none">
+                <label class="cs-label">Trạng thái</label>
+                <select id="courtStatusSelect" class="cs-input">
                     <option value="Active">Hoạt động (Active)</option>
                     <option value="Maintenance">Bảo trì (Maintenance)</option>
                 </select>
             </div>
             <div class="flex items-center justify-end gap-2 pt-3">
                 <button type="button" onclick="closeCourtModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Hủy</button>
-                <button type="submit" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">Lưu sân</button>
+                <button type="submit" class="bg-[#06525c] hover:bg-[#053f47] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">Lưu sân</button>
             </div>
         </form>
     </div>
@@ -97,35 +112,35 @@
 
 <!-- Modal Thêm Khung Giờ -->
 <div id="slotModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100">
+    <div class="cs-card cs-card-pad max-w-sm w-full">
         <h4 class="text-base font-bold text-slate-800 mb-4" id="slotModalTitle">Thêm khung giờ mới</h4>
         <form id="slotForm" class="space-y-3">
             <input type="hidden" id="slotIdInput" />
             <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Tên ca</label>
+                <label class="cs-label">Tên ca</label>
                 <input type="text" id="slotNameInput" required placeholder="Ví dụ: Ca sáng 1"
-                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                       class="cs-input" />
             </div>
             <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Giờ bắt đầu</label>
+                    <label class="cs-label">Giờ bắt đầu</label>
                     <input type="time" id="slotStartTime" required value="06:00"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                           class="cs-input" />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">Giờ kết thúc</label>
+                    <label class="cs-label">Giờ kết thúc</label>
                     <input type="time" id="slotEndTime" required value="07:00"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                           class="cs-input" />
                 </div>
             </div>
             <div>
-                <label class="block text-xs font-bold text-slate-600 mb-1">Giá thuê (VNĐ)</label>
+                <label class="cs-label">Giá thuê (VNĐ)</label>
                 <input type="number" id="slotPriceInput" required min="10000" max="5000000" step="5000" value="90000"
-                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                       class="cs-input" />
             </div>
             <div class="flex items-center justify-end gap-2 pt-3">
                 <button type="button" onclick="closeSlotModal()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">Hủy</button>
-                <button type="submit" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">Lưu ca giờ</button>
+                <button type="submit" class="bg-[#06525c] hover:bg-[#053f47] text-white px-5 py-2 rounded-xl text-xs font-bold shadow-md">Lưu ca giờ</button>
             </div>
         </form>
     </div>
@@ -134,6 +149,12 @@
 @section Scripts {
 <script>
     let currentFacilityId = null;
+    let currentCourtId = null;
+
+    function selectCourt(id) {
+        currentCourtId = id;
+        loadCourtsAndSlots();
+    }
 
     async function initPage() {
         try {
@@ -155,6 +176,7 @@
 
             currentFacilityId = select.value;
             loadCourtsAndSlots();
+            loadSchedule();
         } catch (err) {
             console.error("Lỗi:", err);
         }
@@ -163,6 +185,171 @@
     function onFacilityChange() {
         currentFacilityId = document.getElementById("facilitySelect").value;
         loadCourtsAndSlots();
+        loadSchedule();
+    }
+
+    // ===== Lịch đặt theo ngày =====
+    let scheduleDate = null;
+    let scheduleBookings = new Map();
+
+    const unwrapData = x => (x && !Array.isArray(x) && x.data !== undefined) ? x.data : x;
+    const pad2 = n => String(n).padStart(2, "0");
+    const toYmd = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+
+    function buildDateChips() {
+        const base = new Date(); base.setHours(0, 0, 0, 0);
+        return Array.from({ length: 7 }, (_, i) => {
+            const d = new Date(base); d.setDate(base.getDate() + i);
+            return {
+                value: toYmd(d),
+                label: i === 0 ? "Hôm nay" : d.toLocaleDateString("vi-VN", { weekday: "short" }),
+                day: `${d.getDate()}/${d.getMonth() + 1}`
+            };
+        });
+    }
+
+    function setScheduleDate(v) {
+        scheduleDate = v;
+        loadSchedule();
+    }
+
+    async function loadSchedule() {
+        const board = document.getElementById("scheduleBoard");
+        const dates = document.getElementById("scheduleDates");
+        if (!board || !currentFacilityId) return;
+        if (!scheduleDate) scheduleDate = toYmd(new Date());
+
+        dates.innerHTML = buildDateChips().map(c => `
+            <button onclick="setScheduleDate('${c.value}')"
+                    class="flex flex-col items-center min-w-[68px] px-3 py-2 rounded-2xl border transition-all duration-150
+                           ${c.value === scheduleDate
+                               ? "bg-[#06525c] text-white border-[#06525c] shadow-md"
+                               : "bg-white text-slate-600 border-slate-200 hover:border-[#06525c]/40 hover:-translate-y-0.5"}">
+                <span class="text-[10px] font-bold uppercase tracking-wider opacity-80">${c.label}</span>
+                <span class="text-base font-black tabular-nums">${c.day}</span>
+            </button>`).join("");
+
+        board.innerHTML = `<div class="py-10 text-center text-slate-400 text-xs">Đang tải lịch ngày ${scheduleDate}...</div>`;
+
+        try {
+            const courts = unwrapData(await callApi(`/api/courts?$filter=FacilityId eq ${currentFacilityId} and Status eq 'Active'`)) || [];
+            if (courts.length === 0) {
+                board.innerHTML = `<div class="py-10 text-center text-slate-400 text-xs">Cơ sở chưa có sân con đang hoạt động.</div>`;
+                return;
+            }
+
+            const [perCourt, bookingList] = await Promise.all([
+                Promise.all(courts.map(async c => {
+                    const res = await callApi(`/api/timeslots/available?facilityId=${currentFacilityId}&courtId=${c.id}&playDate=${scheduleDate}`);
+                    return { court: c, slots: unwrapData(res) || [] };
+                })),
+                callApi("/api/bookings").then(unwrapData).catch(() => [])
+            ]);
+
+            scheduleBookings = new Map((bookingList || []).map(b => [b.id, b]));
+
+            const allSlots = perCourt.flatMap(x => x.slots);
+            const columns = [...new Map(allSlots.map(s => [`${s.startTime}|${s.endTime}`, s])).values()]
+                .sort((a, b) => String(a.startTime).localeCompare(String(b.startTime)));
+
+            if (columns.length === 0) {
+                board.innerHTML = `<div class="py-10 text-center text-slate-400 text-xs">Chưa có khung giờ nào cho ngày ${scheduleDate}.</div>`;
+                return;
+            }
+
+            const cnt = { Available: 0, Pending: 0, Booked: 0 };
+            allSlots.forEach(s => { if (cnt[s.status] !== undefined) cnt[s.status]++; });
+
+            const summary = `
+                <div class="grid grid-cols-3 gap-3 mb-5">
+                    <div class="rounded-2xl bg-[#ebf0ee] px-4 py-3"><div class="text-[11px] font-semibold uppercase tracking-wide text-[#06525c]/80">Còn trống</div><div class="text-2xl font-black text-[#06525c] tabular-nums">${cnt.Available}</div></div>
+                    <div class="rounded-2xl bg-amber-50 px-4 py-3"><div class="text-[11px] font-semibold uppercase tracking-wide text-amber-700/80">Chờ duyệt</div><div class="text-2xl font-black text-amber-700 tabular-nums">${cnt.Pending}</div></div>
+                    <div class="rounded-2xl bg-slate-100 px-4 py-3"><div class="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Đã đặt</div><div class="text-2xl font-black text-slate-800 tabular-nums">${cnt.Booked}</div></div>
+                </div>`;
+
+            const head = columns.map(s => `
+                <th class="py-2.5 px-2 text-[11px] font-bold text-slate-600 text-center whitespace-nowrap">
+                    ${formatTime(s.startTime)} – ${formatTime(s.endTime)}
+                </th>`).join("");
+
+            const rows = perCourt.map(({ court, slots }) => `
+                <tr class="border-t border-slate-100">
+                    <td class="sticky left-0 bg-white py-3 pr-3 pl-1 align-middle">
+                        <div class="text-sm font-black text-slate-800">${escapeHtml(court.courtName)}</div>
+                        <div class="text-[10px] text-slate-400">${escapeHtml(court.courtType || "")}</div>
+                    </td>
+                    ${columns.map(col => {
+                        const s = slots.find(x => x.startTime === col.startTime && x.endTime === col.endTime);
+                        if (!s) return `<td class="p-1.5 text-center text-slate-300">—</td>`;
+                        if (s.status === "Booked" || s.status === "Pending") {
+                            const bk = scheduleBookings.get(s.existingBookingId);
+                            const isPending = s.status === "Pending";
+                            const who = bk ? escapeHtml(bk.playerName) : "Khách đặt";
+                            const style = isPending
+                                ? "bg-amber-100 border-amber-300 text-amber-900 hover:bg-amber-200"
+                                : "text-white border-slate-800 hover:brightness-110";
+                            const bg = isPending ? "" : "background-color:#334155;";
+                            return `
+                                <td class="p-1.5">
+                                    <button type="button" ${bk ? `onclick="openBookingDetail(${bk.id})"` : ""}
+                                            class="w-full min-h-[64px] rounded-2xl border px-2.5 py-2 text-left transition-all duration-150 hover:-translate-y-0.5 ${style}"
+                                            style="${bg}">
+                                        <div class="text-[10px] font-bold uppercase tracking-wider ${isPending ? "text-amber-800" : "text-white/70"}">${isPending ? "Chờ duyệt" : "Đã đặt"}</div>
+                                        <div class="text-xs font-black truncate">${who}</div>
+                                    </button>
+                                </td>`;
+                        }
+                        return `
+                            <td class="p-1.5">
+                                <div class="w-full min-h-[64px] rounded-2xl border border-[#06525c]/20 bg-[#ebf0ee] px-2.5 py-2 text-left">
+                                    <div class="text-[10px] font-bold uppercase tracking-wider text-[#06525c]/80">Trống</div>
+                                    <div class="text-xs font-black text-[#06525c]">${formatCurrency(s.price)}</div>
+                                </div>
+                            </td>`;
+                    }).join("")}
+                </tr>`).join("");
+
+            board.innerHTML = `
+                ${summary}
+                <div class="overflow-x-auto">
+                    <table class="w-full border-separate border-spacing-0 min-w-[720px]">
+                        <thead><tr><th class="text-left text-[11px] font-bold text-slate-500 pb-2 pl-1">Sân</th>${head}</tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+        } catch (err) {
+            board.innerHTML = `<div class="py-10 text-center text-rose-500 text-xs">Không tải được lịch: ${escapeHtml(err.message || "")}</div>`;
+        }
+    }
+
+    function openBookingDetail(bookingId) {
+        const b = scheduleBookings.get(bookingId);
+        if (!b) return;
+        const isPending = b.status === "Pending";
+        Swal.fire({
+            title: isPending ? "Đơn chờ duyệt" : "Đơn đã có người đặt",
+            html: `
+                <div class="text-left text-sm space-y-2">
+                    <div><span class="text-slate-400">Mã đơn:</span> <b>#BK-${b.id}</b></div>
+                    <div><span class="text-slate-400">Khách:</span> <b>${escapeHtml(b.playerName || "")}</b> · ${escapeHtml(b.playerPhone || "")}</div>
+                    <div><span class="text-slate-400">Sân:</span> <b>${escapeHtml(b.courtName || "")}</b></div>
+                    <div><span class="text-slate-400">Ngày:</span> <b>${String(b.playDate).substring(0, 10)}</b></div>
+                    <div><span class="text-slate-400">Số tiền:</span> <b>${formatCurrency(b.totalPrice)}</b></div>
+                </div>`,
+            icon: isPending ? "question" : "info",
+            showCancelButton: true,
+            confirmButtonText: isPending ? "Duyệt đơn" : "Đóng",
+            cancelButtonText: "Đóng",
+            confirmButtonColor: "#06525c"
+        }).then(async res => {
+            if (!res.isConfirmed || !isPending) return;
+            try {
+                await callApi(`/api/bookings/${bookingId}`, { method: "PUT", data: { status: "Confirmed" } });
+                loadSchedule();
+            } catch (err) {
+                Swal.fire({ icon: "error", title: "Không duyệt được", text: err.message || "" });
+            }
+        });
     }
 
     async function loadCourtsAndSlots() {
@@ -173,14 +360,20 @@
 
         try {
             const courts = await callApi(`/api/courts?$filter=FacilityId eq ${currentFacilityId}`);
-            const slots = await callApi(`/api/timeslots?$filter=FacilityId eq ${currentFacilityId}&$orderby=StartTime asc`);
+            if (!currentCourtId || !courts.some(c => c.id === currentCourtId)) {
+                currentCourtId = courts.length ? courts[0].id : null;
+            }
+            // Khung giờ & giá thuộc riêng từng sân: chỉ hiển thị của sân đang chọn
+            const slots = currentCourtId
+                ? await callApi(`/api/timeslots?courtId=${currentCourtId}`)
+                : [];
 
             // Render Courts
             if (courts.length === 0) {
                 courtsDiv.innerHTML = `<div class="py-6 text-center text-slate-400 text-xs">Chưa có sân con nào.</div>`;
             } else {
                 courtsDiv.innerHTML = courts.map(c => `
-                    <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                    <div onclick="selectCourt(${c.id})" class="cs-card cs-card-pad cursor-pointer flex items-center justify-between transition-colors ${c.id === currentCourtId ? 'border-[#06525c] ring-1 ring-[#06525c] bg-emerald-50/40' : 'hover:border-slate-300'}">
                         <div>
                             <div class="font-bold text-xs text-slate-800">${escapeHtml(c.courtName)}</div>
                             <div class="text-[10px] text-slate-400">${escapeHtml(c.courtType)} • ${c.status === "Active" ? "<span class='text-emerald-600 font-bold'>Hoạt động</span>" : "<span class='text-amber-600 font-bold'>Bảo trì</span>"}</div>
@@ -200,7 +393,7 @@
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                         <div>
                             <div class="font-bold text-xs text-slate-800">${escapeHtml(s.slotName)} (${formatTime(s.startTime)} - ${formatTime(s.endTime)})</div>
-                            <div class="text-[11px] font-bold text-[#00685f]">${formatCurrency(s.price)}</div>
+                            <div class="text-[11px] font-bold text-[#06525c]">${formatCurrency(s.price)}</div>
                         </div>
                         <button onclick="deleteSlot(${s.id})" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors">
                             <span class="material-symbols-outlined text-[18px]">delete</span>
@@ -256,7 +449,7 @@
 
     // Modal Slot
     function openSlotModal() {
-        if (!currentFacilityId) return alert("Vui lòng chọn cơ sở trước!");
+        if (!currentCourtId) return alert("Vui lòng chọn sân con trước!");
         document.getElementById("slotForm").reset();
         document.getElementById("slotModal").classList.remove("hidden");
         document.getElementById("slotModal").classList.add("flex");
@@ -271,7 +464,7 @@
             await callApi("/api/timeslots", {
                 method: "POST",
                 data: {
-                    facilityId: parseInt(currentFacilityId),
+                    courtId: parseInt(currentCourtId),
                     slotName: document.getElementById("slotNameInput").value.trim(),
                     startTime: document.getElementById("slotStartTime").value + ":00",
                     endTime: document.getElementById("slotEndTime").value + ":00",

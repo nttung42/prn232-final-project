@@ -11,7 +11,7 @@
             <p class="text-xs text-slate-500 mt-1">Theo dõi trạng thái các đơn đặt sân và quản lý lịch chơi cá nhân</p>
         </div>
         <div class="flex items-center gap-3">
-            <a href="/Player/Facilities" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+            <a href="/Player/Facilities" class="bg-[#06525c] hover:bg-[#053f47] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[18px]">add_circle</span>
                 <span>Đặt thêm sân mới</span>
             </a>
@@ -20,7 +20,7 @@
 
     <!-- Filter Bar -->
     <div class="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-        <button onclick="filterStatus('')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-[#00685f] text-white transition-all" data-status="">Tất cả</button>
+        <button onclick="filterStatus('')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-[#06525c] text-white transition-all" data-status="">Tất cả</button>
         <button onclick="filterStatus('Pending')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Pending">Chờ duyệt (Pending)</button>
         <button onclick="filterStatus('Confirmed')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Confirmed">Đã xác nhận</button>
         <button onclick="filterStatus('Completed')" class="status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all" data-status="Completed">Đã hoàn thành</button>
@@ -45,7 +45,7 @@
                 <tbody id="myBookingsTbody" class="divide-y divide-slate-100">
                     <tr>
                         <td colspan="7" class="py-12 text-center text-slate-400">
-                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#06525c] border-t-transparent"></div>
                             <p class="mt-2">Đang tải lịch sử đặt sân...</p>
                         </td>
                     </tr>
@@ -63,7 +63,7 @@
         currentFilter = status;
         document.querySelectorAll(".status-tab").forEach(tab => {
             if (tab.getAttribute("data-status") === status) {
-                tab.className = "status-tab px-4 py-2 rounded-xl text-xs font-bold bg-[#00685f] text-white transition-all";
+                tab.className = "status-tab px-4 py-2 rounded-xl text-xs font-bold bg-[#06525c] text-white transition-all";
             } else {
                 tab.className = "status-tab px-4 py-2 rounded-xl text-xs font-bold bg-white text-slate-600 hover:bg-slate-100 transition-all";
             }
@@ -102,7 +102,8 @@
                 else if (b.status === "Completed") statusBadge = `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Hoàn thành</span>`;
                 else if (b.status === "Cancelled") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã hủy</span>`;
 
-                const canCancel = (b.status === "Pending" || b.status === "Confirmed");
+                // Người chơi chỉ hủy được khi đơn còn chờ duyệt; đã duyệt thì chủ sân không hủy và người chơi cũng không tự hủy
+                const canCancel = (b.status === "Pending");
 
                 return `
                     <tr class="hover:bg-slate-50/70 transition-colors">
@@ -117,7 +118,7 @@
                         <td class="py-4 px-6 font-medium text-slate-600">
                             ${formatDate(b.playDate)}
                         </td>
-                        <td class="py-4 px-6 font-bold text-[#00685f]">
+                        <td class="py-4 px-6 font-bold text-[#06525c]">
                             ${formatCurrency(b.totalPrice)}
                         </td>
                         <td class="py-4 px-6">
@@ -169,7 +170,7 @@
                 icon: "success",
                 title: "Đã hủy đơn!",
                 text: "Đơn đặt sân đã được hủy thành công.",
-                confirmButtonColor: "#00685f"
+                confirmButtonColor: "#06525c"
             });
             loadMyBookings();
         } catch (err) {
@@ -177,7 +178,7 @@
                 icon: "error",
                 title: "Lỗi",
                 text: err.message || "Không thể hủy đơn đặt sân.",
-                confirmButtonColor: "#00685f"
+                confirmButtonColor: "#06525c"
             });
         }
     }

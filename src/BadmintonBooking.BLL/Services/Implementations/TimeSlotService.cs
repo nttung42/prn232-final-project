@@ -21,7 +21,7 @@ public class TimeSlotService : ITimeSlotService
         _mapper = mapper;
     }
 
-    public IQueryable<TimeSlotDto> GetAllQuery(int? facilityId = null)
+    public IQueryable<TimeSlotDto> GetAllQuery(int? facilityId = null, int? courtId = null)
     {
         var query = _unitOfWork.TimeSlots.Query()
             .Include(ts => ts.Facility)
@@ -30,6 +30,10 @@ public class TimeSlotService : ITimeSlotService
         if (facilityId.HasValue)
         {
             query = query.Where(ts => ts.FacilityId == facilityId.Value);
+        }
+        if (courtId.HasValue)
+        {
+            query = query.Where(ts => ts.CourtId == courtId.Value);
         }
 
         return query.ProjectTo<TimeSlotDto>(_mapper.ConfigurationProvider);
@@ -49,6 +53,11 @@ public class TimeSlotService : ITimeSlotService
         return ApiResponse<TimeSlotDto>.Ok(_mapper.Map<TimeSlotDto>(slot));
     }
 
+    /// <summary>
+    /// Trạng thái từng khung giờ của một sân trong một ngày:
+    /// Available (trống), Pending (đang chờ duyệt / đã trừ ví chờ duyệt), Booked (đã xác nhận).
+    /// Đơn đã hoàn thành/hủy không chiếm chỗ.
+    /// </summary>
     public async Task<ApiResponse<List<AvailableTimeSlotDto>>> GetAvailableSlotsAsync(int facilityId, int courtId, DateTime playDate)
     {
         var court = await _unitOfWork.Courts.GetByIdAsync(courtId);
@@ -57,32 +66,39 @@ public class TimeSlotService : ITimeSlotService
             return ApiResponse<List<AvailableTimeSlotDto>>.Fail("Sân không tồn tại hoặc không thuộc cơ sở này.");
         }
 
-        // Active slots for this facility
         var slots = await _unitOfWork.TimeSlots.Query()
-            .Where(ts => ts.FacilityId == facilityId && ts.IsActive)
+            .Where(ts => ts.CourtId == courtId && ts.IsActive)
             .OrderBy(ts => ts.StartTime)
             .ToListAsync();
 
-        // Existing bookings for this court and playDate that are Pending or Confirmed
         var targetDate = playDate.Date;
         var bookings = await _unitOfWork.Bookings.Query()
-            .Where(b => b.CourtId == courtId && 
-                        b.PlayDate.Date == targetDate && 
+            .Where(b => b.CourtId == courtId &&
+                        b.PlayDate.Date == targetDate &&
                         (b.Status == BookingStatuses.Pending || b.Status == BookingStatuses.Confirmed))
             .ToListAsync();
 
-        var bookedSlotDict = bookings.ToDictionary(b => b.TimeSlotId, b => b.Id);
+        var bookingBySlot = bookings.GroupBy(b => b.TimeSlotId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(b => b.Status == BookingStatuses.Confirmed).First());
 
-        var result = slots.Select(s => new AvailableTimeSlotDto
+        var result = slots.Select(s =>
         {
-            Id = s.Id,
-            FacilityId = s.FacilityId,
-            SlotName = s.SlotName,
-            StartTime = s.StartTime,
-            EndTime = s.EndTime,
-            Price = s.Price,
-            IsAvailable = !bookedSlotDict.ContainsKey(s.Id),
-            ExistingBookingId = bookedSlotDict.TryGetValue(s.Id, out var bId) ? bId : null
+            var hasBooking = bookingBySlot.TryGetValue(s.Id, out var booking);
+            var status = !hasBooking ? "Available"
+                : booking!.Status == BookingStatuses.Confirmed ? "Booked" : "Pending";
+            return new AvailableTimeSlotDto
+            {
+                Id = s.Id,
+                FacilityId = s.FacilityId,
+                CourtId = s.CourtId,
+                SlotName = s.SlotName,
+                StartTime = s.StartTime,
+                EndTime = s.EndTime,
+                Price = s.Price,
+                IsAvailable = status == "Available",
+                Status = status,
+                ExistingBookingId = hasBooking ? booking!.Id : null
+            };
         }).ToList();
 
         return ApiResponse<List<AvailableTimeSlotDto>>.Ok(result);
@@ -90,15 +106,17 @@ public class TimeSlotService : ITimeSlotService
 
     public async Task<ApiResponse<TimeSlotDto>> CreateAsync(int currentUserId, string role, SaveTimeSlotDto dto)
     {
-        var facility = await _unitOfWork.Facilities.GetByIdAsync(dto.FacilityId);
-        if (facility == null)
+        var court = await _unitOfWork.Courts.Query()
+            .Include(c => c.Facility)
+            .FirstOrDefaultAsync(c => c.Id == dto.CourtId);
+        if (court == null)
         {
-            return ApiResponse<TimeSlotDto>.Fail("Không tìm thấy cơ sở chỉ định.");
+            return ApiResponse<TimeSlotDto>.Fail("Không tìm thấy sân con chỉ định.");
         }
 
-        if (role != AppRoles.Admin && facility.ProviderId != currentUserId)
+        if (role != AppRoles.Admin && court.Facility?.ProviderId != currentUserId)
         {
-            return ApiResponse<TimeSlotDto>.Fail("Bạn không có quyền thêm khung giờ vào cơ sở này.");
+            return ApiResponse<TimeSlotDto>.Fail("Bạn không có quyền thêm khung giờ cho sân này.");
         }
 
         if (dto.EndTime <= dto.StartTime)
@@ -106,7 +124,16 @@ public class TimeSlotService : ITimeSlotService
             return ApiResponse<TimeSlotDto>.Fail("Giờ kết thúc ca chơi phải lớn hơn giờ bắt đầu.");
         }
 
+        var overlaps = await _unitOfWork.TimeSlots.Query().AnyAsync(ts =>
+            ts.CourtId == court.Id && ts.IsActive && ts.StartTime < dto.EndTime && dto.StartTime < ts.EndTime);
+        if (overlaps)
+        {
+            return ApiResponse<TimeSlotDto>.Fail("Khung giờ này bị trùng với một khung giờ đã có của sân này.");
+        }
+
         var slot = _mapper.Map<TimeSlot>(dto);
+        slot.CourtId = court.Id;
+        slot.FacilityId = court.FacilityId;
         await _unitOfWork.TimeSlots.AddAsync(slot);
         await _unitOfWork.SaveChangesAsync();
 
@@ -134,7 +161,14 @@ public class TimeSlotService : ITimeSlotService
             return ApiResponse<TimeSlotDto>.Fail("Giờ kết thúc ca chơi phải lớn hơn giờ bắt đầu.");
         }
 
+        var court = await _unitOfWork.Courts.GetByIdAsync(dto.CourtId);
+        if (court == null || court.FacilityId != slot.FacilityId)
+        {
+            return ApiResponse<TimeSlotDto>.Fail("Sân không tồn tại hoặc không thuộc cơ sở của khung giờ này.");
+        }
+
         _mapper.Map(dto, slot);
+        slot.CourtId = court.Id;
         _unitOfWork.TimeSlots.Update(slot);
         await _unitOfWork.SaveChangesAsync();
 
@@ -158,7 +192,7 @@ public class TimeSlotService : ITimeSlotService
         }
 
         var hasActiveBookings = await _unitOfWork.Bookings.Query()
-            .AnyAsync(b => b.TimeSlotId == id && 
+            .AnyAsync(b => b.TimeSlotId == id &&
                           (b.Status == BookingStatuses.Pending || b.Status == BookingStatuses.Confirmed));
 
         if (hasActiveBookings)
@@ -172,4 +206,3 @@ public class TimeSlotService : ITimeSlotService
         return ApiResponse<bool>.Ok(true, "Xóa khung giờ thành công.");
     }
 }
-

@@ -8,10 +8,10 @@
     <!-- Top Actions Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-slate-800">Danh sách Cơ sở Cầu lông</h2>
+            <h2 class="cs-title">Danh sách Cơ sở Cầu lông</h2>
             <p class="text-xs text-slate-500">Quản lý và cập nhật thông tin các chi nhánh cơ sở bạn sở hữu</p>
         </div>
-        <button onclick="openCreateModal()" class="bg-[#00685f] hover:bg-[#008378] text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5">
+        <button onclick="openCreateModal()" class="cs-btn cs-btn-primary">
             <span class="material-symbols-outlined text-[18px]">add_circle</span>
             <span>Thêm cơ sở mới</span>
         </button>
@@ -20,7 +20,7 @@
     <!-- Facilities List Grid -->
     <div id="providerFacilityList" class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="col-span-full py-16 text-center text-slate-400">
-            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#00685f] border-t-transparent"></div>
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-[#06525c] border-t-transparent"></div>
             <p class="text-xs mt-3">Đang tải danh sách cơ sở...</p>
         </div>
     </div>
@@ -28,9 +28,9 @@
 
 <!-- Modal Thêm / Chỉnh sửa Cơ sở -->
 <div id="facilityModal" class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl border border-slate-100">
+    <div class="cs-card cs-card-pad max-w-lg w-full">
         <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
-            <h3 class="text-lg font-bold text-slate-800" id="modalTitle">Thêm cơ sở mới</h3>
+            <h3 class="cs-title" id="modalTitle">Thêm cơ sở mới</h3>
             <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
                 <span class="material-symbols-outlined text-[20px]">close</span>
             </button>
@@ -39,55 +39,55 @@
         <form id="facilityForm" class="space-y-4">
             <input type="hidden" id="facilityIdInput" />
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tên cơ sở</label>
+                <label class="cs-label">Tên cơ sở</label>
                 <input type="text" id="facName" required placeholder="Ví dụ: Sân Cầu Lông Sky Quận 7"
-                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                       class="cs-input" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Quận / Huyện</label>
+                    <label class="cs-label">Quận / Huyện</label>
                     <input type="text" id="facDistrict" required placeholder="Quận 7"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                           class="cs-input" />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Số điện thoại</label>
+                    <label class="cs-label">Số điện thoại</label>
                     <input type="tel" id="facPhone" required placeholder="0901234567"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                           class="cs-input" />
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Địa chỉ chi tiết</label>
+                <label class="cs-label">Địa chỉ chi tiết</label>
                 <input type="text" id="facAddress" required placeholder="79 Nguyễn Văn Linh, P. Tân Phú"
-                       class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                       class="cs-input" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Giờ mở cửa</label>
+                    <label class="cs-label">Giờ mở cửa</label>
                     <input type="time" id="facOpenTime" required value="05:00"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                           class="cs-input" />
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Giờ đóng cửa</label>
+                    <label class="cs-label">Giờ đóng cửa</label>
                     <input type="time" id="facCloseTime" required value="23:00"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none" />
+                           class="cs-input" />
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Mô tả tiện ích</label>
+                <label class="cs-label">Mô tả tiện ích</label>
                 <textarea id="facDescription" rows="2" placeholder="Có máy lạnh, bãi đỗ xe ô tô, căn tin..."
-                          class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none"></textarea>
+                          class="cs-textarea"></textarea>
             </div>
 
             <!-- Upload Ảnh bìa cơ sở (Cloudflare R2 Bucket: prn232_bucket) -->
             <div>
-                <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Ảnh bìa cơ sở (Cloudflare R2)</label>
+                <label class="cs-label">Ảnh bìa cơ sở (Cloudflare R2)</label>
                 <div class="flex items-center gap-3">
                     <input type="file" id="facImageFile" accept="image/*" onchange="uploadFacilityImage(this)"
-                           class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#00685f] file:text-white" />
+                           class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-[#06525c] file:text-white" />
                 </div>
                 <input type="hidden" id="facImageUrl" />
                 <div id="imagePreviewBox" class="mt-2 hidden">
@@ -96,8 +96,8 @@
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
-                <button type="button" onclick="closeModal()" class="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Hủy</button>
-                <button type="submit" id="btnSaveFacility" class="bg-[#00685f] hover:bg-[#008378] text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-md">Lưu thông tin</button>
+                <button type="button" onclick="closeModal()" class="cs-btn cs-btn-ghost">Hủy</button>
+                <button type="submit" id="btnSaveFacility" class="cs-btn cs-btn-primary">Lưu thông tin</button>
             </div>
         </form>
     </div>
@@ -124,12 +124,12 @@
 
             container.innerHTML = facilities.map(f => {
                 let statusBadge = "";
-                if (f.status === "Approved") statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã duyệt (Active)</span>`;
-                else if (f.status === "Pending") statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Chờ duyệt (Pending)</span>`;
-                else if (f.status === "Suspended") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Tạm dừng (Suspended)</span>`;
+                if (f.status === "Approved") statusBadge = `<span class="cs-badge cs-badge-success">Đã duyệt (Active)</span>`;
+                else if (f.status === "Pending") statusBadge = `<span class="cs-badge cs-badge-warning">Chờ duyệt (Pending)</span>`;
+                else if (f.status === "Suspended") statusBadge = `<span class="cs-badge cs-badge-danger">Tạm dừng (Suspended)</span>`;
 
                 return `
-                    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between p-6">
+                    <div class="cs-card cs-card-pad flex flex-col justify-between">
                         <div>
                             <div class="flex items-center justify-between mb-3">
                                 <span class="text-xs font-bold text-slate-400">ID: #${f.id}</span>
@@ -137,7 +137,7 @@
                             </div>
                             <h3 class="font-extrabold text-base text-slate-800 line-clamp-1">${escapeHtml(f.name)}</h3>
                             <p class="text-xs text-slate-500 mt-1 line-clamp-1">${escapeHtml(f.address)}, ${escapeHtml(f.district)}</p>
-                            <div class="mt-4 space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl">
+                            <div class="mt-4 space-y-1.5 text-xs text-slate-600 cs-card-muted p-3 rounded-xl">
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-400">Giờ hoạt động:</span>
                                     <span class="font-semibold">${formatTime(f.openTime)} - ${formatTime(f.closeTime)}</span>
@@ -150,15 +150,15 @@
                         </div>
 
                         <div class="pt-5 border-t border-slate-100 mt-5 space-y-2">
-                            <a href="/Provider/CourtsAndSlots?facilityId=${f.id}" class="w-full bg-[#00685f]/10 hover:bg-[#00685f]/20 text-[#00685f] py-2 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1">
+                            <a href="/Provider/CourtsAndSlots?facilityId=${f.id}" class="w-full cs-btn cs-btn-secondary cs-btn-block">
                                 <span class="material-symbols-outlined text-[16px]">tune</span>
                                 <span>Quản lý Sân & Khung giờ</span>
                             </a>
                             <div class="flex items-center gap-2">
-                                <button onclick='openEditModal(${JSON.stringify(f)})' class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2 rounded-xl text-xs font-semibold transition-colors">
+                                <button onclick='openEditModal(${JSON.stringify(f)})' class="flex-1 cs-btn cs-btn-secondary cs-btn-block">
                                     Sửa
                                 </button>
-                                <button onclick="deleteFacility(${f.id})" class="flex-1 bg-rose-50 hover:bg-rose-100 text-rose-600 py-2 rounded-xl text-xs font-semibold transition-colors">
+                                <button onclick="deleteFacility(${f.id})" class="flex-1 cs-btn cs-btn-danger cs-btn-block">
                                     Xóa
                                 </button>
                             </div>
@@ -245,7 +245,7 @@
                 icon: "error",
                 title: "Lỗi tải ảnh",
                 text: err.message || "Không thể tải ảnh lên Cloudflare R2.",
-                confirmButtonColor: "#00685f"
+                confirmButtonColor: "#06525c"
             });
         }
     }
@@ -281,7 +281,7 @@
             closeModal();
             loadProviderFacilities();
         } catch (err) {
-            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#06525c" });
         }
     });
 
@@ -304,7 +304,7 @@
             Swal.fire({ icon: "success", title: "Đã xóa!", timer: 1500, showConfirmButton: false });
             loadProviderFacilities();
         } catch (err) {
-            Swal.fire({ icon: "error", title: "Không thể xóa", text: err.message, confirmButtonColor: "#00685f" });
+            Swal.fire({ icon: "error", title: "Không thể xóa", text: err.message, confirmButtonColor: "#06525c" });
         }
     }
 

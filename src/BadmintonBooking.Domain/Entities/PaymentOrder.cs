@@ -38,6 +38,21 @@ public class PaymentOrder
 
     public DateTime? PaidAt { get; set; }
 
+    /// <summary>Người (Admin/Provider) xác nhận đã nhận tiền hoặc duyệt đơn.</summary>
+    public int? ConfirmedByUserId { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
+
+    /// <summary>Phí nền tảng thu từ đơn đã duyệt (0 nếu chưa duyệt hoặc đã hoàn).</summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal PlatformFee { get; set; }
+
+    /// <summary>Số tiền chủ sân nhận từ đơn đã duyệt (giá sân trừ phí).</summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal ProviderAmount { get; set; }
+
+    public DateTime? SettledAt { get; set; }
+    public DateTime? ReversedAt { get; set; }
+
     public virtual User? User { get; set; }
     public virtual Booking? Booking { get; set; }
 }

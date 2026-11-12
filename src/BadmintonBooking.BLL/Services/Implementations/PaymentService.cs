@@ -215,9 +215,51 @@ public class PaymentService : IPaymentService
                 booking.Note = (booking.Note ?? "") + " [Hết thời gian giữ chỗ]";
             }
 
+            // Giờ địa phương (UTC+7) để so khớp ngày/giờ chơi
+            var localNow = utcNow.AddHours(7);
+
+            // Đơn đã xác nhận nhưng chủ sân quên bấm hoàn thành: tự hoàn thành sau giờ chơi 5 phút để trả sân
+            var confirmedBookings = await _uow.Bookings.Query()
+                .Include(b => b.TimeSlot)
+                .Where(b => b.Status == BookingStatuses.Confirmed && b.PlayDate <= localNow.Date)
+                .ToListAsync();
+            var autoCompleted = 0;
+            foreach (var booking in confirmedBookings)
+            {
+                var end = booking.PlayDate.Date + (booking.TimeSlot?.EndTime ?? TimeSpan.Zero);
+                if (end.AddMinutes(5) <= localNow)
+                {
+                    booking.Status = BookingStatuses.Completed;
+                    booking.Note = (booking.Note ?? "") + " [Tự hoàn thành sau giờ chơi 5 phút]";
+                    autoCompleted++;
+                }
+            }
+
+            // Đơn chờ xác nhận đã qua giờ bắt đầu: tự hủy, hoàn tiền nếu đã trừ ví
+            var pendingBookings = await _uow.Bookings.Query()
+                .Include(b => b.TimeSlot)
+                .Where(b => b.Status == BookingStatuses.Pending && b.PlayDate <= localNow.Date)
+                .ToListAsync();
+            var autoCancelled = 0;
+            foreach (var booking in pendingBookings)
+            {
+                var start = booking.PlayDate.Date + (booking.TimeSlot?.StartTime ?? TimeSpan.Zero);
+                if (start > localNow) continue;
+
+                await _wallet.RefundBookingToWalletAsync(booking.Id); // chỉ hoàn nếu đơn đã thực sự được trừ tiền
+                var heldOrders = await _uow.PaymentOrders.Query()
+                    .Where(p => p.BookingId == booking.Id && p.Purpose == PaymentPurposes.Booking
+                                && (p.Status == PaymentOrderStatuses.Pending || p.Status == PaymentOrderStatuses.Held || p.Status == PaymentOrderStatuses.Underpaid))
+                    .ToListAsync();
+                foreach (var o in heldOrders) o.Status = PaymentOrderStatuses.Expired;
+                booking.Status = BookingStatuses.Cancelled;
+                booking.Note = (booking.Note ?? "") + " [Quá giờ bắt đầu mà chưa được xác nhận]";
+                autoCancelled++;
+            }
+
             await _uow.SaveChangesAsync();
             await _uow.CommitTransactionAsync();
-            return orders.Count + staleBookings.Count;
+            return orders.Count + staleBookings.Count + autoCompleted + autoCancelled;
         }
         catch
         {
@@ -350,6 +392,8 @@ public class PaymentService : IPaymentService
 
             order.Status = PaymentOrderStatuses.Paid;
             order.PaidAt = now;
+            order.ConfirmedByUserId = actorUserId;
+            order.ConfirmedAt = now;
 
             // Đơn đặt sân được duyệt: lưu trạng thái trước rồi ghi doanh thu cho chủ sân (trừ phí nền tảng)
             await _uow.SaveChangesAsync();
@@ -377,8 +421,26 @@ public class PaymentService : IPaymentService
         {
             var order = await _uow.PaymentOrders.Query().FirstOrDefaultAsync(p => p.Code == code)
                 ?? throw new KeyNotFoundException("Không tìm thấy yêu cầu thanh toán.");
+            if (order.Purpose == PaymentPurposes.TopUp)
+            {
+                // Từ chối lệnh nạp ví: không cộng tiền, đóng yêu cầu và hủy giao dịch nạp đang chờ
+                if (actorRole != AppRoles.Admin)
+                    throw new UnauthorizedAccessException("Chỉ Admin được từ chối nạp ví.");
+                if (order.Status != PaymentOrderStatuses.Pending)
+                    throw new InvalidOperationException($"Yêu cầu đang ở trạng thái {order.Status}, không thể từ chối.");
+
+                order.Status = PaymentOrderStatuses.Expired;
+                var deposit = await _uow.WalletTransactions.Query()
+                    .FirstOrDefaultAsync(t => t.ReferenceCode == code && t.Status == WalletTransactionStatuses.Pending);
+                if (deposit != null) deposit.Status = WalletTransactionStatuses.Cancelled;
+
+                await _uow.SaveChangesAsync();
+                await _uow.CommitTransactionAsync();
+                return;
+            }
+
             if (order.Purpose != PaymentPurposes.Booking)
-                throw new InvalidOperationException("Chỉ từ chối được đơn đặt sân.");
+                throw new InvalidOperationException("Chỉ từ chối được đơn đặt sân hoặc nạp ví.");
             if (order.Status != PaymentOrderStatuses.Pending && order.Status != PaymentOrderStatuses.Held)
                 throw new InvalidOperationException($"Yêu cầu đang ở trạng thái {order.Status}, không thể từ chối.");
 
@@ -408,6 +470,68 @@ public class PaymentService : IPaymentService
             await _uow.RollbackTransactionAsync();
             throw;
         }
+    }
+
+    public async Task<List<PaymentHistoryDto>> GetHistoryAsync(int actorUserId, string actorRole)
+    {
+        var query = _uow.PaymentOrders.Query().AsNoTracking()
+            .Where(p => p.ConfirmedAt != null || p.SettledAt != null);
+        if (actorRole == AppRoles.Provider)
+            query = query.Where(p => p.Booking!.Court!.Facility!.ProviderId == actorUserId);
+        else if (actorRole != AppRoles.Admin)
+            return new List<PaymentHistoryDto>();
+
+        var rows = await query
+            .OrderByDescending(p => p.ConfirmedAt ?? p.SettledAt)
+            .Take(300)
+            .Select(p => new
+            {
+                p.Code, p.Purpose, p.Amount, p.Status, p.BookingId,
+                FacilityName = p.Booking != null && p.Booking.Court != null && p.Booking.Court.Facility != null ? p.Booking.Court.Facility.Name : null,
+                PlayerName = p.User != null ? p.User.FullName : null,
+                p.ConfirmedByUserId, p.ConfirmedAt, p.PlatformFee, p.ProviderAmount, p.ReversedAt
+            })
+            .ToListAsync();
+
+        var confirmerIds = rows.Where(r => r.ConfirmedByUserId != null).Select(r => r.ConfirmedByUserId!.Value).Distinct().ToList();
+        var names = await _uow.Users.Query().AsNoTracking()
+            .Where(u => confirmerIds.Contains(u.Id))
+            .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+        return rows.Select(r => new PaymentHistoryDto
+        {
+            Code = r.Code,
+            Purpose = r.Purpose,
+            Amount = r.Amount,
+            Status = r.Status,
+            BookingId = r.BookingId,
+            FacilityName = r.FacilityName,
+            PlayerName = r.PlayerName,
+            ConfirmedByName = r.ConfirmedByUserId != null && names.TryGetValue(r.ConfirmedByUserId.Value, out var n) ? n : null,
+            ConfirmedAt = r.ConfirmedAt,
+            PlatformFee = r.PlatformFee,
+            ProviderAmount = r.ProviderAmount,
+            ReversedAt = r.ReversedAt
+        }).ToList();
+    }
+
+    public async Task<PaymentSummaryDto> GetSummaryAsync(int actorUserId, string actorRole)
+    {
+        var query = _uow.PaymentOrders.Query().AsNoTracking()
+            .Where(p => p.SettledAt != null && p.ReversedAt == null);
+        if (actorRole == AppRoles.Provider)
+            query = query.Where(p => p.Booking!.Court!.Facility!.ProviderId == actorUserId);
+        else if (actorRole != AppRoles.Admin)
+            return new PaymentSummaryDto();
+
+        var rows = await query.Select(p => new { p.Amount, p.PlatformFee, p.ProviderAmount }).ToListAsync();
+        return new PaymentSummaryDto
+        {
+            SettledCount = rows.Count,
+            GrossAmount = rows.Sum(r => r.Amount),
+            PlatformFee = rows.Sum(r => r.PlatformFee),
+            ProviderAmount = rows.Sum(r => r.ProviderAmount)
+        };
     }
 
     // ---------- Nghiệp vụ nội bộ ----------

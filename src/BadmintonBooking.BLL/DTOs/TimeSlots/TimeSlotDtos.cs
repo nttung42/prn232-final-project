@@ -6,6 +6,7 @@ public class TimeSlotDto
 {
     public int Id { get; set; }
     public int FacilityId { get; set; }
+    public int CourtId { get; set; }
     public string FacilityName { get; set; } = string.Empty;
     public string SlotName { get; set; } = string.Empty;
     public TimeSpan StartTime { get; set; }
@@ -16,8 +17,9 @@ public class TimeSlotDto
 
 public class SaveTimeSlotDto
 {
+    /// <summary>Sân con mà khung giờ thuộc về. Cơ sở được suy ra từ sân.</summary>
     [Required]
-    public int FacilityId { get; set; }
+    public int CourtId { get; set; }
 
     [Required(ErrorMessage = "Tên khung giờ không được để trống")]
     [StringLength(50)]
@@ -40,11 +42,14 @@ public class AvailableTimeSlotDto
 {
     public int Id { get; set; }
     public int FacilityId { get; set; }
+    public int CourtId { get; set; }
     public string SlotName { get; set; } = string.Empty;
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
     public decimal Price { get; set; }
     public bool IsAvailable { get; set; }
+    /// <summary>Available | Pending | Booked</summary>
+    public string Status { get; set; } = "Available";
     public int? ExistingBookingId { get; set; }
 }
 
