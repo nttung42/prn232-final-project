@@ -66,7 +66,11 @@ public class UserService : IUserService
             return ApiResponse<UserDto>.Fail("Không tìm thấy người dùng.");
         }
 
-        _mapper.Map(dto, user);
+        if (dto.FullName != null) user.FullName = dto.FullName;
+        if (dto.PhoneNumber != null) user.PhoneNumber = dto.PhoneNumber;
+        if (dto.Role != null) user.Role = dto.Role;
+        if (dto.IsActive.HasValue) user.IsActive = dto.IsActive.Value;
+
         _unitOfWork.Users.Update(user);
         await _unitOfWork.SaveChangesAsync();
 

@@ -134,8 +134,8 @@
                             <div class="text-[11px] text-slate-400">${b.playerPhone || ""}</div>
                         </td>
                         <td class="py-4 px-6">
-                            <div class="font-bold text-slate-800">${b.facilityName || "Cơ sở"}</div>
-                            <div class="text-[11px] text-slate-400">${b.courtName || "Sân con"}</div>
+                            <div class="font-bold text-slate-800">${escapeHtml(b.facilityName || "Cơ sở")}</div>
+                            <div class="text-[11px] text-slate-400">${escapeHtml(b.courtName || "Sân con")}</div>
                         </td>
                         <td class="py-4 px-6 font-medium text-slate-700">
                             ${formatTime(b.startTime)} - ${formatTime(b.endTime)}

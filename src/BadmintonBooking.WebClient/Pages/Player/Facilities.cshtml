@@ -101,13 +101,13 @@
                     <div class="relative h-52 bg-slate-200 bg-cover bg-center" style="background-image: url('${f.imageUrl || 'https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=600&auto=format&fit=crop'}')">
                         <div class="absolute top-3 left-3 bg-white/95 px-2.5 py-1 rounded-full text-[11px] font-bold text-slate-800 shadow-sm flex items-center gap-1">
                             <span class="material-symbols-outlined text-[#00685f] text-[13px]">location_on</span>
-                            <span>${f.district}</span>
+                            <span>${escapeHtml(f.district)}</span>
                         </div>
                     </div>
                     <div class="p-5 flex flex-col flex-grow justify-between gap-4">
                         <div>
-                            <h3 class="font-bold text-base text-slate-800 group-hover:text-[#00685f] transition-colors line-clamp-1">${f.name}</h3>
-                            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${f.address}</p>
+                            <h3 class="font-bold text-base text-slate-800 group-hover:text-[#00685f] transition-colors line-clamp-1">${escapeHtml(f.name)}</h3>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${escapeHtml(f.address)}</p>
                             <div class="mt-3 flex items-center gap-3 text-[11px] text-slate-500">
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[14px] text-slate-400">schedule</span>
@@ -115,7 +115,7 @@
                                 </span>
                                 <span class="flex items-center gap-1">
                                     <span class="material-symbols-outlined text-[14px] text-slate-400">call</span>
-                                    <span>${f.phone}</span>
+                                    <span>${escapeHtml(f.phone)}</span>
                                 </span>
                             </div>
                         </div>

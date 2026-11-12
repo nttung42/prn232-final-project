@@ -82,14 +82,17 @@
                 return `
                     <tr class="hover:bg-slate-50/70 transition-colors">
                         <td class="py-4 px-6 font-mono font-bold text-slate-500">#${u.id}</td>
-                        <td class="py-4 px-6 font-bold text-slate-800">${u.fullName}</td>
-                        <td class="py-4 px-6 text-slate-600">${u.email}</td>
-                        <td class="py-4 px-6 text-slate-600">${u.phoneNumber || "-"}</td>
+                        <td class="py-4 px-6 font-bold text-slate-800">${escapeHtml(u.fullName)}</td>
+                        <td class="py-4 px-6 text-slate-600">${escapeHtml(u.email)}</td>
+                        <td class="py-4 px-6 text-slate-600">${escapeHtml(u.phoneNumber || "-")}</td>
                         <td class="py-4 px-6">${roleBadge}</td>
                         <td class="py-4 px-6">${statusBadge}</td>
                         <td class="py-4 px-6 text-right">
                             <button onclick="toggleUserStatus(${u.id}, ${!u.isActive})" class="${u.isActive ? 'bg-rose-50 hover:bg-rose-100 text-rose-600' : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'} px-3 py-1.5 rounded-xl font-bold text-xs transition-colors">
                                 ${u.isActive ? "Khóa TK" : "Mở khóa"}
+                            </button>
+                            <button onclick="deleteUser(${u.id}, this)" data-name="${escapeHtml(u.fullName)}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-xl font-bold text-xs transition-colors ml-1">
+                                Xóa
                             </button>
                         </td>
                     </tr>
@@ -111,6 +114,28 @@
             loadUsers();
         } catch (err) {
             Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    async function deleteUser(id, btn) {
+        const fullName = btn.dataset.name || "";
+        const confirm = await Swal.fire({
+            icon: "warning",
+            title: "Xóa người dùng?",
+            text: `Tài khoản "${fullName}" sẽ bị xóa. Nếu đã có dữ liệu đặt sân, tài khoản chỉ bị vô hiệu hóa.`,
+            showCancelButton: true,
+            confirmButtonColor: "#ba1a1a",
+            confirmButtonText: "Đồng ý xóa",
+            cancelButtonText: "Hủy"
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            const res = await callApi(`/api/users/${id}`, { method: "DELETE" });
+            Swal.fire({ icon: "success", title: "Thành công", text: res?.message || "Đã xử lý.", timer: 1500, showConfirmButton: false });
+            loadUsers();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Không thể xóa", text: err.message, confirmButtonColor: "#00685f" });
         }
     }
 

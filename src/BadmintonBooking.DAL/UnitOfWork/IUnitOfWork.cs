@@ -12,6 +12,8 @@ public interface IUnitOfWork : IDisposable
     IRepository<Booking> Bookings { get; }
     IRepository<Wallet> Wallets { get; }
     IRepository<WalletTransaction> WalletTransactions { get; }
+    IRepository<PaymentOrder> PaymentOrders { get; }
+    IRepository<BankTransaction> BankTransactions { get; }
 
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();

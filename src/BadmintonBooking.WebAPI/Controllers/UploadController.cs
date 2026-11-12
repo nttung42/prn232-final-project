@@ -6,11 +6,32 @@ namespace BadmintonBooking.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Provider,Admin")] // Chỉ chủ sân và admin được tải ảnh lên
 public class UploadController : ControllerBase
 {
     private readonly IStorageService _storageService;
     private static readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".webp", ".gif" };
-    private const long MaxFileSize = 10 * 1024 * 1024; // 10MB
+    private const long MaxFileSize = 5 * 1024 * 1024; // 5MB mỗi ảnh
+
+    /// <summary>
+    /// Kiểm tra chữ ký (magic bytes) của tệp: không tin vào đuôi file hay Content-Type do client gửi.
+    /// </summary>
+    private static async Task<bool> HasImageSignatureAsync(IFormFile file)
+    {
+        var header = new byte[12];
+        using var stream = file.OpenReadStream();
+        var read = await stream.ReadAsync(header.AsMemory(0, header.Length));
+        if (read < 4) return false;
+
+        bool Starts(params byte[] sig) => read >= sig.Length && header.Take(sig.Length).SequenceEqual(sig);
+
+        if (Starts(0xFF, 0xD8, 0xFF)) return true;                                   // JPEG
+        if (Starts(0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A)) return true;     // PNG
+        if (Starts(0x47, 0x49, 0x46, 0x38)) return true;                             // GIF
+        if (read >= 12 && Starts(0x52, 0x49, 0x46, 0x46)                              // WEBP: "RIFF....WEBP"
+            && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50) return true;
+        return false;
+    }
 
     public UploadController(IStorageService storageService)
     {
@@ -22,6 +43,7 @@ public class UploadController : ControllerBase
     /// </summary>
     [HttpPost("image")]
     [Consumes("multipart/form-data")]
+    [RequestSizeLimit(6 * 1024 * 1024)] // Chặn request quá lớn trước khi đọc
     public async Task<IActionResult> UploadImage(IFormFile? file)
     {
         if (file == null || file.Length == 0)
@@ -35,9 +57,9 @@ public class UploadController : ControllerBase
         }
 
         var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!AllowedExtensions.Contains(extension))
+        if (!AllowedExtensions.Contains(extension) || !await HasImageSignatureAsync(file))
         {
-            return BadRequest(new { message = "Chỉ chấp nhận các định dạng ảnh: .jpg, .jpeg, .png, .webp, .gif" });
+            return BadRequest(new { message = "Tệp không phải ảnh hợp lệ. Chỉ chấp nhận: .jpg, .jpeg, .png, .webp, .gif" });
         }
 
         using var stream = file.OpenReadStream();
@@ -51,6 +73,7 @@ public class UploadController : ControllerBase
     /// </summary>
     [HttpPost("images")]
     [Consumes("multipart/form-data")]
+    [RequestSizeLimit(20 * 1024 * 1024)] // Tối đa ~20MB tổng cho nhiều ảnh (mỗi ảnh <= 5MB)
     public async Task<IActionResult> UploadMultipleImages(List<IFormFile>? files)
     {
         if (files == null || files.Count == 0)
@@ -66,6 +89,7 @@ public class UploadController : ControllerBase
                 if (file.Length > MaxFileSize) continue;
                 var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
                 if (!AllowedExtensions.Contains(ext)) continue;
+                if (!await HasImageSignatureAsync(file)) continue;
 
                 filePayloads.Add((file.OpenReadStream(), file.FileName, file.ContentType));
             }

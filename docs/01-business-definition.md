@@ -30,7 +30,7 @@ Hệ thống bao gồm **3 phân hệ giao diện (3 Sites)** giao tiếp với 
 
 ### 3.1. Phân hệ Người chơi (Player Site)
 * **UC-P01: Đăng ký & Đăng nhập tài khoản Player**
-  * Người chơi đăng ký tài khoản mới với vai trò `Player` hoặc đăng nhập để nhận JWT Token.
+  * Người chơi đăng ký tài khoản mới với vai trò `Player` hoặc đăng nhập để nhận phiên đăng nhập (JWT lưu trong cookie HttpOnly).
 * **UC-P02: Tìm kiếm, Lọc và Sắp xếp Cơ sở cầu lông (Ứng dụng OData)**
   * Tìm kiếm cơ sở theo tên, quận/huyện (`District`), lọc theo mức giá, sắp xếp theo tên hoặc ngày tạo.
   * Chỉ hiển thị các cơ sở có trạng thái `Approved`.

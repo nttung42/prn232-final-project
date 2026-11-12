@@ -40,18 +40,16 @@ public class CreateUserDto
 
 public class UpdateUserDto
 {
-    [Required]
+    // Cập nhật từng phần: trường nào không gửi (null) thì giữ nguyên giá trị cũ
     [StringLength(100, MinimumLength = 2)]
-    public string FullName { get; set; } = string.Empty;
+    public string? FullName { get; set; }
 
-    [Required]
-    [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})$")]
-    public string PhoneNumber { get; set; } = string.Empty;
+    [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Số điện thoại phải gồm đúng 10 chữ số")]
+    public string? PhoneNumber { get; set; }
 
-    [Required]
     [RegularExpression("^(Admin|Provider|Player)$")]
-    public string Role { get; set; } = "Player";
+    public string? Role { get; set; }
 
-    public bool IsActive { get; set; } = true;
+    public bool? IsActive { get; set; }
 }
 

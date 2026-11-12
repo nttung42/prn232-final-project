@@ -13,11 +13,11 @@ public class RegisterRequestDto
     public string Email { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Số điện thoại không được để trống")]
-    [RegularExpression(@"^(0[3|5|7|8|9])+([0-9]{8})$", ErrorMessage = "Số điện thoại không hợp lệ")]
+    [RegularExpression(@"^[0-9]{10}$", ErrorMessage = "Số điện thoại phải gồm đúng 10 chữ số")]
     public string PhoneNumber { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Mật khẩu không được để trống")]
-    [StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu tối thiểu 6 ký tự")]
+    [StringLength(100, MinimumLength = 8, ErrorMessage = "Mật khẩu tối thiểu 8 ký tự")]
     public string Password { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Role không được để trống")]

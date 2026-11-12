@@ -135,8 +135,8 @@
                                 <span class="text-xs font-bold text-slate-400">ID: #${f.id}</span>
                                 ${statusBadge}
                             </div>
-                            <h3 class="font-extrabold text-base text-slate-800 line-clamp-1">${f.name}</h3>
-                            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${f.address}, ${f.district}</p>
+                            <h3 class="font-extrabold text-base text-slate-800 line-clamp-1">${escapeHtml(f.name)}</h3>
+                            <p class="text-xs text-slate-500 mt-1 line-clamp-1">${escapeHtml(f.address)}, ${escapeHtml(f.district)}</p>
                             <div class="mt-4 space-y-1.5 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl">
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-400">Giờ hoạt động:</span>
@@ -144,7 +144,7 @@
                                 </div>
                                 <div class="flex items-center justify-between">
                                     <span class="text-slate-400">Số điện thoại:</span>
-                                    <span class="font-semibold">${f.phone}</span>
+                                    <span class="font-semibold">${escapeHtml(f.phone)}</span>
                                 </div>
                             </div>
                         </div>

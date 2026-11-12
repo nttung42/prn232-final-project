@@ -16,6 +16,8 @@ public class UnitOfWork : IUnitOfWork
     private IRepository<Booking>? _bookings;
     private IRepository<Wallet>? _wallets;
     private IRepository<WalletTransaction>? _walletTransactions;
+    private IRepository<PaymentOrder>? _paymentOrders;
+    private IRepository<BankTransaction>? _bankTransactions;
 
     public UnitOfWork(AppDbContext context)
     {
@@ -29,6 +31,8 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<Booking> Bookings => _bookings ??= new Repository<Booking>(_context);
     public IRepository<Wallet> Wallets => _wallets ??= new Repository<Wallet>(_context);
     public IRepository<WalletTransaction> WalletTransactions => _walletTransactions ??= new Repository<WalletTransaction>(_context);
+    public IRepository<PaymentOrder> PaymentOrders => _paymentOrders ??= new Repository<PaymentOrder>(_context);
+    public IRepository<BankTransaction> BankTransactions => _bankTransactions ??= new Repository<BankTransaction>(_context);
 
     public async Task<int> SaveChangesAsync()
     {

@@ -39,7 +39,7 @@ flowchart LR
         DB[("SQL Server\nDatabase")]
     end
 
-    Clients <-->|"HTTPS + AJAX (JSON/XML/CSV)\nHeader: Authorization Bearer <JWT>"| Auth
+    Clients <-->|"HTTPS + AJAX (JSON/XML/CSV)\nCookie HttpOnly (JWT) + Header X-Requested-With"| Auth
     Auth --> CN --> OData --> Controllers
     Controllers <--> Mapper
     Controllers --> Services --> EF --> DB
@@ -184,8 +184,23 @@ Mỗi Resource chính (`Facilities`, `Courts`, `TimeSlots`, `Bookings`, `Users`)
 | Method | Endpoint | Quyền | Mô tả |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/auth/register` | Public | Đăng ký tài khoản (`Player` hoặc `Provider`). |
-| `POST` | `/api/auth/login` | Public | Đăng nhập, trả về `AccessToken` (JWT), `Role`, `UserId`, `FullName`. |
+| `POST` | `/api/auth/login` | Public (giới hạn 10 lần/phút/IP) | Đăng nhập. JWT được đặt vào cookie `courtside_token` (HttpOnly, Secure, SameSite=Lax, 24 giờ). Body trả về `UserId`, `FullName`, `Email`, `Role`; trường `accessToken` luôn rỗng. |
+| `POST` | `/api/auth/logout` | Public | Xóa cookie xác thực. |
 | `GET` | `/api/auth/me` | Authenticated | Lấy thông tin người dùng hiện tại từ JWT Claims. |
+
+Mọi request thay đổi dữ liệu (`POST`, `PUT`, `PATCH`, `DELETE`) phải gửi kèm header `X-Requested-With: CourtSideWeb`, thiếu header trả về `403`. Xem thêm mục 4.4.
+
+### 3.x. Nhóm API Ví & Thanh toán (`WalletController`)
+| Method | Endpoint | Quyền | Mô tả |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/wallet/me` | Authenticated | Số dư và thông tin ví của người dùng hiện tại. |
+| `GET` | `/api/wallet/transactions` | Authenticated | Lịch sử giao dịch ví của người dùng hiện tại. |
+| `POST` | `/api/wallet/topup` | Authenticated | Tạo giao dịch nạp tiền `Pending` và mã VietQR. |
+| `GET` | `/api/wallet/admin/pending-topups` | `Admin` | Danh sách giao dịch nạp đang chờ đối soát. |
+| `POST` | `/api/wallet/confirm-topup/{transactionId}` | `Admin` | Xác nhận đã nhận tiền, cộng số dư ví. Người chơi không tự xác nhận được. |
+| `POST` | `/api/wallet/pay-booking` | Authenticated (chủ đơn) | Thanh toán đơn đặt sân bằng số dư ví, đơn chuyển sang `Confirmed`. |
+
+Chi tiết quy tắc tiền và đối soát xem `docs/04-thanh-toan-va-bao-mat.md`.
 
 ### 3.2. Nhóm API Cơ sở cầu lông (`FacilitiesController`) — *Hỗ trợ OData*
 | Method | Endpoint | Quyền | Mô tả |
@@ -279,6 +294,10 @@ Mỗi Resource chính (`Facilities`, `Courts`, `TimeSlots`, `Bookings`, `Users`)
     * **Export CSV** (Gửi AJAX với header `Accept: text/csv`) $\rightarrow$ Trình duyệt tải về file `bookings.csv` để mở bằng Excel.
 
 ### 4.4. Xác thực & Phân quyền bằng JWT (Authentication & Authorization)
+* **Nơi lưu token:** JWT nằm trong cookie `courtside_token` do API đặt khi đăng nhập (`HttpOnly`, `Secure`, `SameSite=Lax`, hết hạn sau 24 giờ). JavaScript không đọc được token; trình duyệt tự gửi cookie kèm request với `credentials: include`. API đọc token từ cookie khi không có header `Authorization` (xem `Program.cs`, sự kiện `OnMessageReceived`).
+* **Chống CSRF:** mọi request `POST`, `PUT`, `PATCH`, `DELETE` phải có header `X-Requested-With: CourtSideWeb`, và CORS chỉ cho phép origin trong `Cors:AllowedOrigins` (mặc định `http://localhost:3456`).
+* **Giới hạn tốc độ:** 300 request/phút/IP cho toàn API, và 10 lần/phút/IP cho đăng nhập. Giới hạn lưu trong bộ nhớ, chỉ đúng với một instance.
+* **Khóa ký:** `Jwt:Key` bắt buộc cấu hình (≥ 32 ký tự) qua biến môi trường `Jwt__Key`. Không có giá trị mặc định trong mã nguồn.
 * Khi đăng nhập thành công (`POST /api/auth/login`), Server tạo JWT Token chứa các Claims:
   * `ClaimTypes.NameIdentifier`: `User.Id`
   * `ClaimTypes.Email`: `User.Email`
@@ -294,11 +313,11 @@ Mỗi Resource chính (`Facilities`, `Courts`, `TimeSlots`, `Bookings`, `Users`)
 
 ## 5. Thiết kế Giao diện 3 Sites Gọi API Bằng AJAX
 
-Client được tổ chức thành 3 phân hệ rõ ràng, sử dụng `jQuery AJAX` / `Fetch API` đính kèm `Authorization: Bearer <token>` từ `localStorage`:
+Client được tổ chức thành các phân hệ rõ ràng, sử dụng `Fetch API` với `credentials: include` (cookie HttpOnly do API cấp) và header `X-Requested-With: CourtSideWeb`. `localStorage` chỉ lưu thông tin hiển thị (`courtside_user`: id, tên, email, vai trò), không lưu token:
 
 ### 5.1. Danh sách Màn hình theo 3 Sites
 1. **Common / Auth Pages:**
-   * `/Auth/Login`: Đăng nhập, nhận JWT lưu vào `localStorage`, tự động điều hướng về đúng Site theo `Role` (`Admin` $\rightarrow$ `/Admin`, `Provider` $\rightarrow$ `/Provider`, `Player` $\rightarrow$ `/Player`).
+   * `/Auth/Login`: Đăng nhập (cookie JWT do API đặt), lưu thông tin hiển thị vào `localStorage`, tự động điều hướng về đúng Site theo `Role` (`Admin` $\rightarrow$ `/Admin`, `Provider` $\rightarrow$ `/Provider`, `Player` $\rightarrow$ `/Player`).
    * `/Auth/Register`: Đăng ký tài khoản mới (chọn đăng ký làm `Player` hoặc `Provider`).
 2. **Player Site (`/Player/...`):**
    * `/Player/Index`: Trang chủ tìm kiếm & lọc cơ sở cầu lông (gọi AJAX OData `/api/facilities?$filter=...`).
@@ -311,22 +330,30 @@ Client được tổ chức thành 3 phân hệ rõ ràng, sử dụng `jQuery A
 4. **Admin Site (`/Admin/...`):**
    * `/Admin/Dashboard`: Thống kê tổng quan toàn sàn.
    * `/Admin/Facilities`: Kiểm duyệt các cơ sở cầu lông (`Approve` / `Reject` / `Suspend`) bằng AJAX.
-   * `/Admin/Users`: Quản lý người dùng toàn hệ thống (Lọc OData, Thêm/Sửa/Khóa tài khoản bằng AJAX).
+   * `/Admin/Users`: Quản lý người dùng toàn hệ thống (Lọc OData, Khóa/Mở khóa tài khoản, Xóa người dùng có xác nhận; nếu tài khoản đã có đơn đặt hoặc cơ sở thì chỉ vô hiệu hóa).
+   * `/Admin/Topups`: Đối soát nạp ví. Liệt kê giao dịch nạp đang `Pending`, Admin xác nhận đã nhận tiền để cộng số dư ví.
 
 ### 5.2. Chuẩn hóa Hàm Gọi AJAX Chung (`site-api.js`)
 ```javascript
-function callApi(endpoint, method = "GET", data = null, acceptHeader = "application/json") {
-    const token = localStorage.getItem("jwt_token");
-    return $.ajax({
-        url: `${API_BASE_URL}${endpoint}`,
-        type: method,
-        contentType: "application/json",
-        headers: {
-            "Accept": acceptHeader,
-            ...(token ? { "Authorization": `Bearer ${token}` } : {})
-        },
-        data: data ? JSON.stringify(data) : null
-    });
+// Bản triển khai thực tế dùng fetch(); JWT đi kèm bằng cookie HttpOnly, không đọc từ JavaScript.
+async function callApi(endpoint, { method = "GET", data = null, accept = "application/json" } = {}) {
+    const options = {
+        method: method.toUpperCase(),
+        headers: { "Accept": accept, "X-Requested-With": "CourtSideWeb" },
+        credentials: "include"
+    };
+    if (data && ["POST", "PUT", "PATCH"].includes(options.method)) {
+        options.headers["Content-Type"] = "application/json";
+        options.body = JSON.stringify(data);
+    }
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+    if (response.status === 401) {          // Hết phiên: xóa thông tin hiển thị và về trang đăng nhập
+        AuthManager.clearSession();
+        window.location.href = "/Auth/Login";
+    }
+    // ... xử lý 403/204/lỗi như trong site-api.js
 }
 ```
+
+Hàm `escapeHtml(value)` bắt buộc dùng khi đưa dữ liệu người dùng (tên, địa chỉ, ghi chú...) vào `innerHTML`, để chống XSS.
 

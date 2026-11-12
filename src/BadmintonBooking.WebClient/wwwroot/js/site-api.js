@@ -5,11 +5,26 @@
 
 const API_BASE_URL = window.API_BASE_URL || "http://localhost:6789";
 
-// 1. Quản lý Authentication Session qua localStorage
+// Header bắt buộc cho mọi request thay đổi dữ liệu (chống CSRF). Form/đường dẫn của bên thứ ba
+// không thể gắn header tùy chỉnh này nếu không qua CORS cho phép.
+const CSRF_HEADER = { "X-Requested-With": "CourtSideWeb" };
+
+// Escape nội dung đưa vào innerHTML để chống XSS. Mọi dữ liệu người dùng (tên, địa chỉ, ghi chú...) phải đi qua hàm này.
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
+// 1. Phiên đăng nhập: JWT nằm trong cookie HttpOnly do API đặt (JavaScript KHÔNG đọc được token).
+// localStorage chỉ giữ thông tin hiển thị (id, tên, vai trò). Quyền thật được API kiểm tra qua cookie.
+// Xóa token cũ (nếu còn từ phiên bản trước) để không để lại bí mật trong trình duyệt.
+localStorage.removeItem("courtside_token");
+
 const AuthManager = {
-    getToken() {
-        return localStorage.getItem("courtside_token");
-    },
     getUser() {
         const userStr = localStorage.getItem("courtside_user");
         try {
@@ -18,24 +33,28 @@ const AuthManager = {
             return null;
         }
     },
-    setSession(token, user) {
-        localStorage.setItem("courtside_token", token);
+    setSession(user) {
         if (user) {
             localStorage.setItem("courtside_user", JSON.stringify(user));
         }
     },
     clearSession() {
-        localStorage.removeItem("courtside_token");
         localStorage.removeItem("courtside_user");
     },
+    // Đã có thông tin người dùng. Nếu cookie đã hết hạn, API trả 401 và callApi sẽ đưa về trang đăng nhập.
     isAuthenticated() {
-        return !!this.getToken();
+        return !!this.getUser();
     },
     getUserRole() {
         const user = this.getUser();
         return user ? user.role : null;
     },
-    logout() {
+    async logout() {
+        try {
+            await fetch(`${API_BASE_URL}/api/auth/logout`, { method: "POST", credentials: "include", headers: CSRF_HEADER });
+        } catch (e) {
+            // Mạng lỗi vẫn xóa phiên phía client
+        }
         this.clearSession();
         window.location.href = "/Auth/Login";
     },
@@ -73,20 +92,18 @@ function buildODataQuery({ filter, orderby, top, skip, select, expand, count } =
 
 // 3. Centralized API Fetcher
 async function callApi(endpoint, { method = "GET", data = null, accept = "application/json", isBlob = false } = {}) {
-    const token = AuthManager.getToken();
     const url = endpoint.startsWith("http") ? endpoint : `${API_BASE_URL}${endpoint}`;
 
+    // JWT đi kèm qua cookie HttpOnly (credentials: include), không đọc từ JavaScript
     const headers = {
-        "Accept": accept
+        "Accept": accept,
+        ...CSRF_HEADER
     };
-
-    if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
-    }
 
     const options = {
         method: method.toUpperCase(),
-        headers
+        headers,
+        credentials: "include"
     };
 
     if (data && ["POST", "PUT", "PATCH"].includes(options.method)) {
@@ -151,7 +168,13 @@ async function callApi(endpoint, { method = "GET", data = null, accept = "applic
             let errorMsg = `Lỗi yêu cầu (${response.status})`;
             try {
                 const errData = await response.json();
-                errorMsg = errData.message || errData.title || JSON.stringify(errData);
+                // ASP.NET ModelState errors nằm trong errData.errors: { Field: [msg, ...] }
+                const fieldErrors = errData.errors
+                    ? Object.values(errData.errors).flat().filter(Boolean)
+                    : [];
+                errorMsg = fieldErrors.length > 0
+                    ? fieldErrors.join("\n")
+                    : (errData.message || errData.title || JSON.stringify(errData));
             } catch (e) {
                 errorMsg = await response.text();
             }

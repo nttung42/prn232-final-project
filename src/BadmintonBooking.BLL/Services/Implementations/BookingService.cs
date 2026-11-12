@@ -14,11 +14,13 @@ public class BookingService : IBookingService
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IWalletService _walletService;
 
-    public BookingService(IUnitOfWork unitOfWork, IMapper mapper)
+    public BookingService(IUnitOfWork unitOfWork, IMapper mapper, IWalletService walletService)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _walletService = walletService;
     }
 
     public IQueryable<BookingDto> GetAllQuery(int currentUserId, string role)
@@ -37,6 +39,11 @@ public class BookingService : IBookingService
         else if (role == AppRoles.Provider)
         {
             query = query.Where(b => b.Court != null && b.Court.Facility != null && b.Court.Facility.ProviderId == currentUserId);
+        }
+        else if (role != AppRoles.Admin)
+        {
+            // Vai trò không xác định: không trả về dữ liệu nào
+            query = query.Where(b => false);
         }
         // Admin sees all
 
@@ -179,6 +186,13 @@ public class BookingService : IBookingService
         }
 
         var newStatus = dto.Status;
+        var previousStatus = booking.Status;
+
+        if (newStatus != BookingStatuses.Pending && newStatus != BookingStatuses.Confirmed
+            && newStatus != BookingStatuses.Cancelled && newStatus != BookingStatuses.Completed)
+        {
+            return ApiResponse<BookingDto>.Fail("Trạng thái đơn không hợp lệ.");
+        }
 
         if (role == AppRoles.Player)
         {
@@ -236,6 +250,40 @@ public class BookingService : IBookingService
         if (!string.IsNullOrWhiteSpace(dto.Note))
         {
             booking.Note = dto.Note;
+        }
+
+        // Đồng bộ yêu cầu chuyển khoản của đơn: đơn được xác nhận => yêu cầu đã thanh toán; đơn bị hủy => yêu cầu hết hiệu lực
+        if (booking.Status == BookingStatuses.Confirmed || booking.Status == BookingStatuses.Cancelled)
+        {
+            var pendingOrders = await _unitOfWork.PaymentOrders.Query()
+                .Where(p => p.BookingId == booking.Id && p.Purpose == PaymentPurposes.Booking
+                            && (p.Status == PaymentOrderStatuses.Pending || p.Status == PaymentOrderStatuses.Held))
+                .ToListAsync();
+            foreach (var order in pendingOrders)
+            {
+                if (booking.Status == BookingStatuses.Confirmed)
+                {
+                    order.Status = PaymentOrderStatuses.Paid;
+                    order.PaidAt = DateTime.UtcNow;
+                }
+                else
+                {
+                    order.Status = PaymentOrderStatuses.Expired;
+                }
+            }
+        }
+
+        // Hủy đơn đã xác nhận đã trả bằng ví thì hoàn tiền về ví (lưu cùng lần SaveChanges)
+        // Doanh thu chủ sân: duyệt đơn đã thanh toán online => ghi nhận; hủy đơn đã duyệt => thu hồi
+        if (booking.Status == BookingStatuses.Confirmed)
+            await _walletService.SettleBookingIncomeAsync(booking.Id, DateTime.UtcNow);
+        if (booking.Status == BookingStatuses.Cancelled && previousStatus == BookingStatuses.Confirmed)
+            await _walletService.ReverseBookingIncomeAsync(booking.Id, DateTime.UtcNow);
+
+        // Hủy đơn đã trừ ví (đang chờ duyệt hoặc đã xác nhận) thì hoàn tiền; đơn chưa thanh toán không được hoàn (wallet tự kiểm tra)
+        if (booking.Status == BookingStatuses.Cancelled && (previousStatus == BookingStatuses.Confirmed || previousStatus == BookingStatuses.Pending))
+        {
+            await _walletService.RefundBookingToWalletAsync(booking.Id);
         }
 
         _unitOfWork.Bookings.Update(booking);

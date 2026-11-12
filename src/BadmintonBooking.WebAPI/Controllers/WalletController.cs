@@ -51,6 +51,16 @@ public class WalletController : ControllerBase
     }
 
     /// <summary>
+    /// [ADMIN] Danh sách các giao dịch nạp tiền đang chờ đối soát
+    /// </summary>
+    [HttpGet("admin/pending-topups")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult<List<PendingTopupDto>>> GetPendingTopups()
+    {
+        return Ok(await _walletService.GetPendingTopupsAsync());
+    }
+
+    /// <summary>
     /// Khởi tạo giao dịch nạp tiền vào ví qua VietQR Napas 247
     /// </summary>
     [HttpPost("topup")]
@@ -61,27 +71,6 @@ public class WalletController : ControllerBase
 
         var response = await _walletService.CreateTopupAsync(userId, request);
         return Ok(response);
-    }
-
-    /// <summary>
-    /// Xác nhận nạp tiền thành công (Webhook mô phỏng / Quản trị viên duyệt đối soát)
-    /// </summary>
-    [HttpPost("confirm-topup/{transactionId}")]
-    public async Task<ActionResult<WalletDto>> ConfirmTopup(int transactionId)
-    {
-        try
-        {
-            var updatedWallet = await _walletService.ConfirmTopupAsync(transactionId);
-            return Ok(updatedWallet);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
     }
 
     /// <summary>

@@ -17,6 +17,8 @@ public class AppDbContext : DbContext
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Wallet> Wallets => Set<Wallet>();
     public DbSet<WalletTransaction> WalletTransactions => Set<WalletTransaction>();
+    public DbSet<PaymentOrder> PaymentOrders => Set<PaymentOrder>();
+    public DbSet<BankTransaction> BankTransactions => Set<BankTransaction>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -116,6 +118,30 @@ public class AppDbContext : DbContext
             entity.Property(t => t.Status).HasDefaultValue(WalletTransactionStatuses.Pending);
             entity.Property(t => t.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             entity.HasIndex(t => t.ReferenceCode);
+        });
+
+        // PaymentOrder config: mã thanh toán duy nhất
+        modelBuilder.Entity<PaymentOrder>(entity =>
+        {
+            entity.HasIndex(p => p.Code).IsUnique();
+            entity.HasIndex(p => p.BookingId);
+            entity.Property(p => p.Amount).HasPrecision(18, 2);
+            entity.HasOne(p => p.User)
+                  .WithMany()
+                  .HasForeignKey(p => p.UserId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.Booking)
+                  .WithMany()
+                  .HasForeignKey(p => p.BookingId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // BankTransaction config: chống nhận trùng theo mã giao dịch SePay
+        modelBuilder.Entity<BankTransaction>(entity =>
+        {
+            entity.HasIndex(b => b.SepayId).IsUnique();
+            entity.HasIndex(b => b.MatchedCode);
+            entity.Property(b => b.TransferAmount).HasPrecision(18, 2);
         });
     }
 }

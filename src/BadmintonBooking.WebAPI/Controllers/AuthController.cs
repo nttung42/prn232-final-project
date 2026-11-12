@@ -4,6 +4,7 @@ using BadmintonBooking.BLL.Services.Interfaces;
 using BadmintonBooking.WebAPI.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace BadmintonBooking.WebAPI.Controllers;
 
@@ -39,6 +40,8 @@ public class AuthController : ControllerBase
             return BadRequest(result);
         }
 
+        // Đăng ký không đăng nhập ngay: không trả token ra body
+        if (result.Data != null) result.Data.AccessToken = string.Empty;
         return Ok(result);
     }
 
@@ -47,6 +50,7 @@ public class AuthController : ControllerBase
     /// </summary>
     [HttpPost("login")]
     [AllowAnonymous]
+    [EnableRateLimiting("login")] // Chống dò mật khẩu: giới hạn theo IP
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginRequestDto request)
@@ -58,12 +62,42 @@ public class AuthController : ControllerBase
         }
 
         var result = await _authService.LoginAsync(request);
-        if (!result.Success)
+        if (!result.Success || result.Data == null)
         {
             return BadRequest(result);
         }
 
+        // Token chỉ đi qua cookie HttpOnly: JavaScript không đọc được, không đưa vào body
+        Response.Cookies.Append(AuthCookieName, result.Data.AccessToken, BuildAuthCookieOptions(TimeSpan.FromHours(24)));
+        result.Data.AccessToken = string.Empty;
+
         return Ok(result);
+    }
+
+    /// <summary>
+    /// Đăng xuất: xóa cookie xác thực
+    /// </summary>
+    [HttpPost("logout")]
+    [AllowAnonymous]
+    public IActionResult Logout()
+    {
+        Response.Cookies.Delete(AuthCookieName, BuildAuthCookieOptions(null));
+        return Ok(new { success = true, message = "Đã đăng xuất." });
+    }
+
+    public const string AuthCookieName = "courtside_token";
+
+    private CookieOptions BuildAuthCookieOptions(TimeSpan? lifetime)
+    {
+        return new CookieOptions
+        {
+            HttpOnly = true,
+            // Luôn Secure: trình duyệt coi http://localhost là ngữ cảnh an toàn nên vẫn gửi cookie khi phát triển
+            Secure = true,
+            SameSite = SameSiteMode.Lax,
+            Path = "/",
+            Expires = lifetime.HasValue ? DateTimeOffset.UtcNow.Add(lifetime.Value) : null
+        };
     }
 
     /// <summary>

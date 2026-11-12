@@ -31,7 +31,16 @@ public class FacilitiesController : ControllerBase
         // By default, if anonymous or role is Player, show approved facilities
         var role = User.GetUserRole();
         bool filterApproved = onlyApproved ?? (role != AppRoles.Admin && role != AppRoles.Provider);
-        return _facilityService.GetAllQuery(filterApproved);
+        var query = _facilityService.GetAllQuery(filterApproved);
+
+        // Provider chỉ thấy cơ sở của chính mình (Admin thấy tất cả)
+        if (role == AppRoles.Provider)
+        {
+            var currentUserId = User.GetUserId();
+            query = query.Where(f => f.ProviderId == currentUserId);
+        }
+
+        return query;
     }
 
     /// <summary>

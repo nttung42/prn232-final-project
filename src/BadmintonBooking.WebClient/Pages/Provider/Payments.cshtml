@@ -1,0 +1,122 @@
+@page
+@{
+    Layout = "_ProviderLayout";
+    ViewData["Title"] = "Duyệt đơn đặt sân";
+}
+
+<div class="space-y-6">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-black text-slate-800">Duyệt đơn đặt sân</h2>
+            <p class="text-xs text-slate-500">Các đơn của cơ sở bạn đang chờ xác nhận. Đơn <b>đã trừ ví</b> đã được giữ tiền; đơn <b>chuyển khoản</b> cần đối chiếu sao kê trước khi xác nhận.</p>
+        </div>
+        <button onclick="loadReview()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700">
+            Làm mới
+        </button>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                        <th class="py-4 px-6">Đơn</th>
+                        <th class="py-4 px-6">Khách</th>
+                        <th class="py-4 px-6">Hình thức</th>
+                        <th class="py-4 px-6">Tạo lúc</th>
+                        <th class="py-4 px-6 text-right">Số tiền</th>
+                        <th class="py-4 px-6 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewTbody" class="divide-y divide-slate-100">
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <p class="mt-2">Đang tải...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const fmtVnd = n => new Intl.NumberFormat("vi-VN").format(n) + "đ";
+
+    async function loadReview() {
+        const tbody = document.getElementById("reviewTbody");
+        try {
+            const items = (await callApi("/api/payments/review")).filter(p => p.purpose === "Booking");
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400 text-xs">Không có đơn nào đang chờ xác nhận.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(p => {
+                const held = p.status === "Held";
+                const method = held
+                    ? `<span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã trừ ví</span>`
+                    : `<span class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Chuyển khoản · ${escapeHtml(p.code)}</span>`;
+                const confirmLabel = held ? "Duyệt đơn" : "Đã nhận tiền";
+                return `
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-4 px-6 font-bold text-slate-800">#BK-${p.bookingId}<div class="text-slate-500 font-normal">${escapeHtml(p.facilityName || "")}</div></td>
+                    <td class="py-4 px-6 font-bold text-slate-800">${escapeHtml(p.playerName || "")}</td>
+                    <td class="py-4 px-6">${method}</td>
+                    <td class="py-4 px-6 text-slate-600">${new Date(p.createdAt).toLocaleString("vi-VN")}</td>
+                    <td class="py-4 px-6 text-right font-bold text-emerald-700">${fmtVnd(p.amount)}</td>
+                    <td class="py-4 px-6 text-right whitespace-nowrap">
+                        <button onclick="confirmPayment('${escapeHtml(p.code)}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs">${confirmLabel}</button>
+                        <button onclick="rejectPayment('${escapeHtml(p.code)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs ml-1">Từ chối</button>
+                    </td>
+                </tr>`;
+            }).join("");
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500 text-xs">Lỗi: ${escapeHtml(err.message)}</td></tr>`;
+        }
+    }
+
+    async function confirmPayment(code) {
+        const ok = await Swal.fire({
+            icon: "question",
+            title: "Xác nhận đơn?",
+            text: "Đơn sẽ được xác nhận. Với đơn chuyển khoản, hãy đảm bảo đã nhận đủ tiền.",
+            showCancelButton: true,
+            confirmButtonColor: "#00685f",
+            confirmButtonText: "Xác nhận",
+            cancelButtonText: "Hủy"
+        });
+        if (!ok.isConfirmed) return;
+        try {
+            await callApi(`/api/payments/${encodeURIComponent(code)}/confirm`, { method: "POST" });
+            Swal.fire({ icon: "success", title: "Đã xác nhận đơn", timer: 1200, showConfirmButton: false });
+            loadReview();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Không thể xác nhận", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    async function rejectPayment(code) {
+        const ok = await Swal.fire({
+            icon: "warning",
+            title: "Từ chối đơn?",
+            text: "Đơn sẽ bị hủy. Nếu khách đã trừ ví, số tiền sẽ được hoàn về ví của khách.",
+            showCancelButton: true,
+            confirmButtonColor: "#ba1a1a",
+            confirmButtonText: "Từ chối",
+            cancelButtonText: "Quay lại"
+        });
+        if (!ok.isConfirmed) return;
+        try {
+            await callApi(`/api/payments/${encodeURIComponent(code)}/reject`, { method: "POST" });
+            Swal.fire({ icon: "success", title: "Đã từ chối đơn", timer: 1200, showConfirmButton: false });
+            loadReview();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Không thể từ chối", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadReview);
+</script>
+}

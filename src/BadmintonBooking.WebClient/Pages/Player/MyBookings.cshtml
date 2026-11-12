@@ -108,8 +108,8 @@
                     <tr class="hover:bg-slate-50/70 transition-colors">
                         <td class="py-4 px-6 font-mono font-bold text-slate-700">#BK-${b.id}</td>
                         <td class="py-4 px-6">
-                            <div class="font-bold text-slate-800">${b.facilityName || "Cụm sân"}</div>
-                            <div class="text-[11px] text-slate-400">${b.courtName || "Sân"}</div>
+                            <div class="font-bold text-slate-800">${escapeHtml(b.facilityName || "Cụm sân")}</div>
+                            <div class="text-[11px] text-slate-400">${escapeHtml(b.courtName || "Sân")}</div>
                         </td>
                         <td class="py-4 px-6 font-semibold text-slate-700">
                             ${formatTime(b.startTime)} - ${formatTime(b.endTime)}
