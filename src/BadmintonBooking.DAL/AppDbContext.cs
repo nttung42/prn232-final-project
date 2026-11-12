@@ -120,6 +120,16 @@ public class AppDbContext : DbContext
             entity.HasIndex(t => t.ReferenceCode);
         });
 
+        // TimeSlot thuộc sân con: xóa sân phải xóa khung giờ trước (tránh vòng cascade trên SQL Server)
+        modelBuilder.Entity<TimeSlot>(entity =>
+        {
+            entity.HasOne(ts => ts.Court)
+                  .WithMany()
+                  .HasForeignKey(ts => ts.CourtId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasIndex(ts => new { ts.CourtId, ts.StartTime });
+        });
+
         // PaymentOrder config: mã thanh toán duy nhất
         modelBuilder.Entity<PaymentOrder>(entity =>
         {

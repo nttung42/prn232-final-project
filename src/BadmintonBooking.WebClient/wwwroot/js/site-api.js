@@ -126,7 +126,7 @@ async function callApi(endpoint, { method = "GET", data = null, accept = "applic
                     icon: "warning",
                     title: "Hết phiên đăng nhập",
                     text: "Vui lòng đăng nhập lại để tiếp tục.",
-                    confirmButtonColor: "#00685f"
+                    confirmButtonColor: "#06525c"
                 });
             }
             window.location.href = `/Auth/Login?returnUrl=${encodeURIComponent(window.location.pathname + window.location.search)}`;
@@ -140,7 +140,7 @@ async function callApi(endpoint, { method = "GET", data = null, accept = "applic
                     icon: "error",
                     title: "Không có quyền",
                     text: "Bạn không có quyền thực hiện thao tác này.",
-                    confirmButtonColor: "#00685f"
+                    confirmButtonColor: "#06525c"
                 });
             } else {
                 alert("Bạn không có quyền thực hiện thao tác này.");

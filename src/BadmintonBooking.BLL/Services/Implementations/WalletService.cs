@@ -294,6 +294,18 @@ public class WalletService : IWalletService
         wallet.Balance += net;
         wallet.UpdatedAt = now;
 
+        // Lưu số liệu doanh thu/phí lên yêu cầu thanh toán để lịch sử và dashboard tính được
+        var order = await _unitOfWork.PaymentOrders.Query().FirstOrDefaultAsync(p =>
+            p.BookingId == bookingId && p.Purpose == PaymentPurposes.Booking && p.SettledAt == null
+            && (p.Status == PaymentOrderStatuses.Held || p.Status == PaymentOrderStatuses.Pending || p.Status == PaymentOrderStatuses.Paid));
+        if (order != null)
+        {
+            order.PlatformFee = fee;
+            order.ProviderAmount = net;
+            order.SettledAt = now;
+            order.ReversedAt = null;
+        }
+
         await _unitOfWork.WalletTransactions.AddAsync(new WalletTransaction
         {
             Wallet = wallet,
@@ -324,6 +336,15 @@ public class WalletService : IWalletService
         var wallet = await _unitOfWork.Wallets.Query().FirstAsync(w => w.Id == income.WalletId);
         wallet.Balance -= income.Amount;
         wallet.UpdatedAt = now;
+
+        var settledOrder = await _unitOfWork.PaymentOrders.Query().FirstOrDefaultAsync(p =>
+            p.BookingId == bookingId && p.Purpose == PaymentPurposes.Booking && p.SettledAt != null && p.ReversedAt == null);
+        if (settledOrder != null)
+        {
+            settledOrder.ReversedAt = now;
+            settledOrder.PlatformFee = 0;
+            settledOrder.ProviderAmount = 0;
+        }
 
         await _unitOfWork.WalletTransactions.AddAsync(new WalletTransaction
         {

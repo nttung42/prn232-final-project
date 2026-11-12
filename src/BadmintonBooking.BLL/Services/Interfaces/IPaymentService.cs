@@ -26,6 +26,12 @@ public interface IPaymentService
     /// <summary>Admin/Provider từ chối đơn đặt sân đang chờ; hoàn tiền về ví nếu đã trừ ví.</summary>
     Task RejectAsync(string code, int actorUserId, string actorRole);
 
+    /// <summary>Lịch sử đối soát đã xử lý (Admin: tất cả; Provider: cơ sở của mình).</summary>
+    Task<List<PaymentHistoryDto>> GetHistoryAsync(int actorUserId, string actorRole);
+
+    /// <summary>Tổng hợp doanh thu và phí nền tảng.</summary>
+    Task<PaymentSummaryDto> GetSummaryAsync(int actorUserId, string actorRole);
+
     /// <summary>Danh sách giao dịch ngân hàng gần đây cho Admin đối chiếu.</summary>
     Task<List<BankTransactionDto>> GetBankTransactionsAsync(int take);
 }

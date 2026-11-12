@@ -26,9 +26,9 @@ public class TimeSlotsController : ControllerBase
     [HttpGet]
     [EnableQuery]
     [AllowAnonymous]
-    public IQueryable<TimeSlotDto> GetAll([FromQuery] int? facilityId = null)
+    public IQueryable<TimeSlotDto> GetAll([FromQuery] int? facilityId = null, [FromQuery] int? courtId = null)
     {
-        return _timeSlotService.GetAllQuery(facilityId);
+        return _timeSlotService.GetAllQuery(facilityId, courtId);
     }
 
     /// <summary>

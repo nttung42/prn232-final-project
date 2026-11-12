@@ -7,58 +7,77 @@
 <div class="space-y-8">
     <!-- Top KPI Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <div class="cs-card cs-card-pad">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase text-slate-400">Tổng người dùng</span>
+                <span class="cs-eyebrow">Tổng người dùng</span>
                 <span class="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center material-symbols-outlined text-[20px]">group</span>
             </div>
-            <div class="text-2xl font-black text-slate-800" id="kpiTotalUsers">...</div>
+            <div class="text-2xl font-black tracking-tight text-slate-900" id="kpiTotalUsers">...</div>
             <span class="text-[11px] text-slate-400">Player, Provider & Admin</span>
         </div>
 
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <div class="cs-card cs-card-pad">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase text-slate-400">Tổng cơ sở</span>
+                <span class="cs-eyebrow">Tổng cơ sở</span>
                 <span class="w-10 h-10 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center material-symbols-outlined text-[20px]">apartment</span>
             </div>
-            <div class="text-2xl font-black text-slate-800" id="kpiTotalFacilities">...</div>
+            <div class="text-2xl font-black tracking-tight text-slate-900" id="kpiTotalFacilities">...</div>
             <span class="text-[11px] text-emerald-600 font-semibold" id="kpiApprovedFacilities">Đang hoạt động</span>
         </div>
 
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <div class="cs-card cs-card-pad">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase text-slate-400">Cơ sở chờ duyệt</span>
+                <span class="cs-eyebrow">Cơ sở chờ duyệt</span>
                 <span class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center material-symbols-outlined text-[20px]">pending_actions</span>
             </div>
             <div class="text-2xl font-black text-amber-600" id="kpiPendingFacilities">...</div>
-            <a href="/Admin/Facilities" class="text-[11px] text-[#00685f] font-bold hover:underline">Vào duyệt ngay &rarr;</a>
+            <a href="/Admin/Facilities" class="text-[11px] text-[#06525c] font-bold hover:underline">Vào duyệt ngay &rarr;</a>
         </div>
 
-        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
+        <div class="cs-card cs-card-pad">
             <div class="flex items-center justify-between mb-2">
-                <span class="text-xs font-bold uppercase text-slate-400">Tổng lượt đặt sân</span>
+                <span class="cs-eyebrow">Tổng lượt đặt sân</span>
                 <span class="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center material-symbols-outlined text-[20px]">calendar_month</span>
             </div>
-            <div class="text-2xl font-black text-slate-800" id="kpiTotalBookings">...</div>
+            <div class="text-2xl font-black tracking-tight text-slate-900" id="kpiTotalBookings">...</div>
             <span class="text-[11px] text-slate-400">Trên toàn hệ thống</span>
         </div>
     </div>
 
+    <!-- Doanh thu & lợi nhuận nền tảng -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="cs-card cs-card-pad">
+            <span class="cs-eyebrow">Lợi nhuận nền tảng</span>
+            <div class="text-3xl font-black text-emerald-700 mt-2" id="kpiPlatformFee">...</div>
+            <span class="text-[11px] text-slate-400">Phí 5% trên các đơn đã duyệt</span>
+        </div>
+        <div class="cs-card cs-card-pad">
+            <span class="cs-eyebrow">Doanh thu gộp</span>
+            <div class="text-3xl font-black tracking-tight text-slate-900 mt-2" id="kpiGross">...</div>
+            <span class="text-[11px] text-slate-400">Tổng giá sân đã duyệt</span>
+        </div>
+        <div class="cs-card cs-card-pad">
+            <span class="cs-eyebrow">Chủ sân nhận</span>
+            <div class="text-3xl font-black tracking-tight text-slate-900 mt-2" id="kpiProviderAmount">...</div>
+            <span class="text-[11px] text-slate-400">Sau khi trừ phí nền tảng</span>
+        </div>
+    </div>
+
     <!-- Quick Shortcuts Section -->
-    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-200">
+    <div class="cs-card cs-card-pad p-8">
         <h3 class="text-base font-bold text-slate-800 mb-4">Lối tắt tác vụ Quản trị</h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a href="/Admin/Facilities" class="p-5 rounded-2xl bg-slate-50 hover:bg-[#00685f]/5 border border-slate-200 hover:border-[#00685f]/30 transition-all flex items-center gap-4 group">
-                <div class="w-12 h-12 rounded-xl bg-[#00685f]/10 text-[#00685f] flex items-center justify-center shrink-0">
+            <a href="/Admin/Facilities" class="p-5 rounded-2xl bg-slate-50 hover:bg-[#06525c]/5 border border-slate-200 hover:border-[#06525c]/30 transition-all flex items-center gap-4 group">
+                <div class="w-12 h-12 rounded-xl bg-[#06525c]/10 text-[#06525c] flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[24px]">fact_check</span>
                 </div>
                 <div>
-                    <h4 class="font-bold text-sm text-slate-800 group-hover:text-[#00685f] transition-colors">Kiểm duyệt Cơ sở Cầu lông</h4>
+                    <h4 class="font-bold text-sm text-slate-800 group-hover:text-[#06525c] transition-colors">Kiểm duyệt Cơ sở Cầu lông</h4>
                     <p class="text-xs text-slate-500 mt-0.5">Xem xét thông tin đăng ký cơ sở mới từ các chủ sân (Provider) và phê duyệt.</p>
                 </div>
             </a>
 
-            <a href="/Admin/Users" class="p-5 rounded-2xl bg-slate-50 hover:bg-[#00685f]/5 border border-slate-200 hover:border-[#00685f]/30 transition-all flex items-center gap-4 group">
+            <a href="/Admin/Users" class="p-5 rounded-2xl bg-slate-50 hover:bg-[#06525c]/5 border border-slate-200 hover:border-[#06525c]/30 transition-all flex items-center gap-4 group">
                 <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-[24px]">manage_accounts</span>
                 </div>
@@ -77,6 +96,12 @@
         try {
             // Lấy dữ liệu thống kê từ dashboard API
             // API trả về ApiResponse { success, message, data }
+            const fmtMoney = n => new Intl.NumberFormat("vi-VN").format(Math.round(Number(n) || 0)) + "đ";
+            callApi("/api/payments/summary").then(s => {
+                document.getElementById("kpiPlatformFee").textContent = fmtMoney(s.platformFee);
+                document.getElementById("kpiGross").textContent = fmtMoney(s.grossAmount);
+                document.getElementById("kpiProviderAmount").textContent = fmtMoney(s.providerAmount);
+            }).catch(() => {});
             const stats = (await callApi("/api/dashboard/stats")).data;
             document.getElementById("kpiTotalUsers").textContent = stats.totalUsers || 0;
             document.getElementById("kpiTotalFacilities").textContent = stats.totalFacilities || 0;

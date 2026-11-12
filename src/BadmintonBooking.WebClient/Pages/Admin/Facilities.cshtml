@@ -6,14 +6,14 @@
 
 <div class="space-y-6">
     <!-- Header & Filter -->
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="cs-card cs-card-pad flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-slate-800">Kiểm duyệt & Quản trị Cơ sở</h2>
+            <h2 class="cs-title text-xl">Kiểm duyệt & Quản trị Cơ sở</h2>
             <p class="text-xs text-slate-500">Phê duyệt hoặc tạm khóa các cụm sân trên toàn hệ thống</p>
         </div>
 
         <div class="flex items-center gap-3">
-            <select id="adminFacStatusFilter" onchange="loadAdminFacilities()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00685f]">
+            <select id="adminFacStatusFilter" onchange="loadAdminFacilities()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#06525c]">
                 <option value="">Tất cả trạng thái</option>
                 <option value="Pending" selected>Chờ duyệt (Pending)</option>
                 <option value="Approved">Đã duyệt (Approved)</option>
@@ -23,11 +23,11 @@
     </div>
 
     <!-- Facilities List Table -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse text-xs">
+    <div class="cs-card overflow-hidden">
+        <div class="cs-table-wrap">
+            <table class="cs-table">
                 <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                    <tr class="">
                         <th class="py-4 px-6">Mã CS</th>
                         <th class="py-4 px-6">Tên Cơ sở</th>
                         <th class="py-4 px-6">Chủ sân (Provider)</th>
@@ -40,7 +40,7 @@
                 <tbody id="adminFacilitiesTbody" class="divide-y divide-slate-100">
                     <tr>
                         <td colspan="7" class="py-12 text-center text-slate-400">
-                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#06525c] border-t-transparent"></div>
                             <p class="mt-2">Đang tải danh sách cơ sở...</p>
                         </td>
                     </tr>
@@ -71,9 +71,9 @@
 
             tbody.innerHTML = facilities.map(f => {
                 let statusBadge = "";
-                if (f.status === "Approved") statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã duyệt</span>`;
+                if (f.status === "Approved") statusBadge = `<span class="cs-badge cs-badge-success">Đã duyệt</span>`;
                 else if (f.status === "Pending") statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Chờ duyệt</span>`;
-                else if (f.status === "Suspended") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Tạm khóa</span>`;
+                else if (f.status === "Suspended") statusBadge = `<span class="cs-badge cs-badge-danger">Tạm khóa</span>`;
 
                 return `
                     <tr class="hover:bg-slate-50/70 transition-colors">
@@ -86,12 +86,12 @@
                         <td class="py-4 px-6 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 ${f.status !== "Approved" ? `
-                                    <button onclick="updateFacilityStatus(${f.id}, 'Approved')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs transition-colors">
+                                    <button onclick="updateFacilityStatus(${f.id}, 'Approved')" class="cs-btn cs-btn-success cs-btn-sm transition-colors">
                                         Duyệt (Approve)
                                     </button>
                                 ` : ""}
                                 ${f.status !== "Suspended" ? `
-                                    <button onclick="updateFacilityStatus(${f.id}, 'Suspended')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs transition-colors">
+                                    <button onclick="updateFacilityStatus(${f.id}, 'Suspended')" class="cs-btn cs-btn-danger cs-btn-sm transition-colors">
                                         Khóa (Suspend)
                                     </button>
                                 ` : ""}
@@ -115,7 +115,7 @@
             Swal.fire({ icon: "success", title: "Cập nhật thành công!", timer: 1200, showConfirmButton: false });
             loadAdminFacilities();
         } catch (err) {
-            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#06525c" });
         }
     }
 

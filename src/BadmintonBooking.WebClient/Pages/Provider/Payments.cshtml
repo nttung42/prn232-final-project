@@ -1,40 +1,47 @@
 @page
 @{
     Layout = "_ProviderLayout";
-    ViewData["Title"] = "Duyệt đơn đặt sân";
+    ViewData["Title"] = "Duyệt đơn & đối soát";
 }
 
 <div class="space-y-6">
-    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="cs-card cs-card-pad flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-slate-800">Duyệt đơn đặt sân</h2>
-            <p class="text-xs text-slate-500">Các đơn của cơ sở bạn đang chờ xác nhận. Đơn <b>đã trừ ví</b> đã được giữ tiền; đơn <b>chuyển khoản</b> cần đối chiếu sao kê trước khi xác nhận.</p>
+            <h2 class="cs-title">Duyệt đơn & đối soát</h2>
+            <p class="text-xs text-slate-500">Đơn đặt sân của cơ sở bạn đang chờ xác nhận, đối soát chuyển khoản QR và lịch sử giao dịch.</p>
         </div>
-        <button onclick="loadReview()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700">
-            Làm mới
-        </button>
+        <button onclick="reload()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700">Làm mới</button>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="cs-card cs-card-pad">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Lợi nhuận (đã trừ phí)</div>
+            <div id="sumProfit" class="text-2xl font-black text-emerald-700 mt-2">—</div>
+            <div class="text-[11px] text-slate-400 mt-1">Phần chủ sân nhận sau phí nền tảng 5%</div>
+        </div>
+        <div class="cs-card cs-card-pad">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Doanh thu gộp</div>
+            <div id="sumGross" class="text-2xl font-black text-slate-800 mt-2">—</div>
+            <div class="text-[11px] text-slate-400 mt-1">Tổng giá sân đã duyệt</div>
+        </div>
+        <div class="cs-card cs-card-pad">
+            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Số đơn đã duyệt</div>
+            <div id="sumCount" class="text-2xl font-black text-slate-800 mt-2">—</div>
+            <div class="text-[11px] text-slate-400 mt-1">Đơn còn hiệu lực (không tính đơn đã hoàn)</div>
+        </div>
+    </div>
+
+    <div class="flex gap-2">
+        <button id="tabPending" onclick="showTab('pending')" class="px-4 py-2 rounded-xl text-xs font-bold bg-[#06525c] text-white">Chờ duyệt</button>
+        <button id="tabHistory" onclick="showTab('history')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700">Lịch sử giao dịch</button>
+    </div>
+
+    <div class="cs-card cs-table-wrap">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
-                        <th class="py-4 px-6">Đơn</th>
-                        <th class="py-4 px-6">Khách</th>
-                        <th class="py-4 px-6">Hình thức</th>
-                        <th class="py-4 px-6">Tạo lúc</th>
-                        <th class="py-4 px-6 text-right">Số tiền</th>
-                        <th class="py-4 px-6 text-right">Thao tác</th>
-                    </tr>
-                </thead>
+                <thead id="tableHead"></thead>
                 <tbody id="reviewTbody" class="divide-y divide-slate-100">
-                    <tr>
-                        <td colspan="6" class="py-12 text-center text-slate-400">
-                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
-                            <p class="mt-2">Đang tải...</p>
-                        </td>
-                    </tr>
+                    <tr><td class="py-12 text-center text-slate-400">Đang tải...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -43,32 +50,59 @@
 
 @section Scripts {
 <script>
-    const fmtVnd = n => new Intl.NumberFormat("vi-VN").format(n) + "đ";
+    const fmtVnd = n => new Intl.NumberFormat("vi-VN").format(Math.round(Number(n) || 0)) + "đ";
+    let currentTab = "pending";
 
-    async function loadReview() {
+    function showTab(tab) {
+        currentTab = tab;
+        document.getElementById("tabPending").className = `px-4 py-2 rounded-xl text-xs font-bold ${tab === "pending" ? "bg-[#06525c] text-white" : "bg-slate-100 text-slate-700"}`;
+        document.getElementById("tabHistory").className = `px-4 py-2 rounded-xl text-xs font-bold ${tab === "history" ? "bg-[#06525c] text-white" : "bg-slate-100 text-slate-700"}`;
+        reload();
+    }
+
+    function reload() {
+        loadSummary();
+        currentTab === "pending" ? loadPending() : loadHistory();
+    }
+
+    async function loadSummary() {
+        try {
+            const s = (await callApi("/api/payments/summary"));
+            document.getElementById("sumProfit").textContent = fmtVnd(s.providerAmount);
+            document.getElementById("sumGross").textContent = fmtVnd(s.grossAmount);
+            document.getElementById("sumCount").textContent = s.settledCount;
+        } catch (e) { /* giữ nguyên */ }
+    }
+
+    function setHead(cols) {
+        document.getElementById("tableHead").innerHTML =
+            `<tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">${cols.map(c => `<th class="py-4 px-6 ${c.right ? 'text-right' : ''}">${c.label}</th>`).join("")}</tr>`;
+    }
+
+    async function loadPending() {
         const tbody = document.getElementById("reviewTbody");
+        setHead([{label:"Đơn"},{label:"Khách"},{label:"Hình thức"},{label:"Tạo lúc"},{label:"Số tiền",right:true},{label:"Thao tác",right:true}]);
         try {
             const items = (await callApi("/api/payments/review")).filter(p => p.purpose === "Booking");
-            if (!items || items.length === 0) {
+            if (!items.length) {
                 tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400 text-xs">Không có đơn nào đang chờ xác nhận.</td></tr>`;
                 return;
             }
             tbody.innerHTML = items.map(p => {
                 const held = p.status === "Held";
                 const method = held
-                    ? `<span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã trừ ví</span>`
-                    : `<span class="bg-amber-50 text-amber-700 px-2.5 py-1 rounded-full text-[10px] font-bold">Chuyển khoản · ${escapeHtml(p.code)}</span>`;
-                const confirmLabel = held ? "Duyệt đơn" : "Đã nhận tiền";
+                    ? `<span class="cs-badge cs-badge-success">Đã trừ ví</span>`
+                    : `<span class="cs-badge cs-badge-warning">QR · ${escapeHtml(p.code)}</span>`;
                 return `
-                <tr class="hover:bg-slate-50/70 transition-colors">
+                <tr class="hover:bg-slate-50/70">
                     <td class="py-4 px-6 font-bold text-slate-800">#BK-${p.bookingId}<div class="text-slate-500 font-normal">${escapeHtml(p.facilityName || "")}</div></td>
                     <td class="py-4 px-6 font-bold text-slate-800">${escapeHtml(p.playerName || "")}</td>
                     <td class="py-4 px-6">${method}</td>
                     <td class="py-4 px-6 text-slate-600">${new Date(p.createdAt).toLocaleString("vi-VN")}</td>
                     <td class="py-4 px-6 text-right font-bold text-emerald-700">${fmtVnd(p.amount)}</td>
                     <td class="py-4 px-6 text-right whitespace-nowrap">
-                        <button onclick="confirmPayment('${escapeHtml(p.code)}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs">${confirmLabel}</button>
-                        <button onclick="rejectPayment('${escapeHtml(p.code)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs ml-1">Từ chối</button>
+                        <button onclick="confirmPayment('${escapeHtml(p.code)}')" class="cs-btn cs-btn-success cs-btn-sm">${held ? "Duyệt đơn" : "Đã nhận tiền"}</button>
+                        <button onclick="rejectPayment('${escapeHtml(p.code)}')" class="cs-btn cs-btn-danger cs-btn-sm ml-1">Từ chối</button>
                     </td>
                 </tr>`;
             }).join("");
@@ -77,13 +111,44 @@
         }
     }
 
+    async function loadHistory() {
+        const tbody = document.getElementById("reviewTbody");
+        setHead([{label:"Đơn"},{label:"Khách"},{label:"Xác nhận bởi"},{label:"Thời gian"},{label:"Giá sân",right:true},{label:"Phí",right:true},{label:"Chủ sân nhận",right:true},{label:"Trạng thái"}]);
+        try {
+            const items = await callApi("/api/payments/history");
+            if (!items.length) {
+                tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-400 text-xs">Chưa có giao dịch nào được xử lý.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(h => {
+                const reversed = !!h.reversedAt;
+                const status = reversed
+                    ? `<span class="cs-badge cs-badge-danger">Đã hoàn</span>`
+                    : `<span class="cs-badge cs-badge-success">Đã duyệt</span>`;
+                return `
+                <tr class="hover:bg-slate-50/70">
+                    <td class="py-4 px-6 font-bold text-slate-800">${h.bookingId ? "#BK-" + h.bookingId : escapeHtml(h.code)}<div class="text-slate-500 font-normal">${escapeHtml(h.facilityName || "")}</div></td>
+                    <td class="py-4 px-6 text-slate-700">${escapeHtml(h.playerName || "")}</td>
+                    <td class="py-4 px-6 text-slate-700">${escapeHtml(h.confirmedByName || "—")}</td>
+                    <td class="py-4 px-6 text-slate-600">${h.confirmedAt ? new Date(h.confirmedAt).toLocaleString("vi-VN") : "—"}</td>
+                    <td class="py-4 px-6 text-right">${fmtVnd(h.amount)}</td>
+                    <td class="py-4 px-6 text-right text-slate-500">${fmtVnd(h.platformFee)}</td>
+                    <td class="py-4 px-6 text-right font-bold text-emerald-700">${reversed ? "0đ" : fmtVnd(h.providerAmount)}</td>
+                    <td class="py-4 px-6">${status}</td>
+                </tr>`;
+            }).join("");
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-500 text-xs">Lỗi: ${escapeHtml(err.message)}</td></tr>`;
+        }
+    }
+
     async function confirmPayment(code) {
         const ok = await Swal.fire({
             icon: "question",
             title: "Xác nhận đơn?",
-            text: "Đơn sẽ được xác nhận. Với đơn chuyển khoản, hãy đảm bảo đã nhận đủ tiền.",
+            text: "Đơn sẽ được xác nhận và ghi doanh thu cho cơ sở. Với đơn chuyển khoản, hãy đảm bảo đã nhận đủ tiền.",
             showCancelButton: true,
-            confirmButtonColor: "#00685f",
+            confirmButtonColor: "#06525c",
             confirmButtonText: "Xác nhận",
             cancelButtonText: "Hủy"
         });
@@ -91,9 +156,9 @@
         try {
             await callApi(`/api/payments/${encodeURIComponent(code)}/confirm`, { method: "POST" });
             Swal.fire({ icon: "success", title: "Đã xác nhận đơn", timer: 1200, showConfirmButton: false });
-            loadReview();
+            reload();
         } catch (err) {
-            Swal.fire({ icon: "error", title: "Không thể xác nhận", text: err.message, confirmButtonColor: "#00685f" });
+            Swal.fire({ icon: "error", title: "Không thể xác nhận", text: err.message, confirmButtonColor: "#06525c" });
         }
     }
 
@@ -111,12 +176,12 @@
         try {
             await callApi(`/api/payments/${encodeURIComponent(code)}/reject`, { method: "POST" });
             Swal.fire({ icon: "success", title: "Đã từ chối đơn", timer: 1200, showConfirmButton: false });
-            loadReview();
+            reload();
         } catch (err) {
-            Swal.fire({ icon: "error", title: "Không thể từ chối", text: err.message, confirmButtonColor: "#00685f" });
+            Swal.fire({ icon: "error", title: "Không thể từ chối", text: err.message, confirmButtonColor: "#06525c" });
         }
     }
 
-    document.addEventListener("DOMContentLoaded", loadReview);
+    document.addEventListener("DOMContentLoaded", () => reload());
 </script>
 }

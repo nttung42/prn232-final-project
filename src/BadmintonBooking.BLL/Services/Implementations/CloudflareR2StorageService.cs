@@ -42,7 +42,11 @@ public class CloudflareR2StorageService : IStorageService
         var config = new AmazonS3Config
         {
             ServiceURL = _serviceUrl,
-            ForcePathStyle = true
+            ForcePathStyle = true,
+            // SDK 4.x mặc định gửi checksum CRC32 dạng trailer, S3-compatible (MinIO) không hỗ trợ.
+            // Chỉ tính checksum khi bên lưu trữ yêu cầu, tương thích cả Cloudflare R2 và MinIO.
+            RequestChecksumCalculation = Amazon.Runtime.RequestChecksumCalculation.WHEN_REQUIRED,
+            ResponseChecksumValidation = Amazon.Runtime.ResponseChecksumValidation.WHEN_REQUIRED
         };
         return new AmazonS3Client(credentials, config);
     }
@@ -63,8 +67,7 @@ public class CloudflareR2StorageService : IStorageService
                     BucketName = _bucketName,
                     Key = uniqueFileName,
                     InputStream = stream,
-                    ContentType = contentType,
-                    DisablePayloadSigning = true
+                    ContentType = contentType
                 };
 
                 await client.PutObjectAsync(putRequest);
@@ -72,8 +75,7 @@ public class CloudflareR2StorageService : IStorageService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Lỗi khi tải file lên Cloudflare R2 bucket {BucketName}. Đang kích hoạt fallback.", _bucketName);
-            }
+                _logger.LogError(ex, "Lỗi khi tải file lên Cloudflare R2 bucket {BucketName}. Đang kích hoạt fallback.", _bucketName);            }
         }
 
         // Fallback lưu local file vào thư mục wwwroot/uploads để đảm bảo bài luôn chạy mượt khi demo

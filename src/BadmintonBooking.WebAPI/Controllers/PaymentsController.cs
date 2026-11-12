@@ -99,6 +99,22 @@ public class PaymentsController : ControllerBase
         catch (InvalidOperationException ex) { return BadRequest(new { success = false, message = ex.Message }); }
     }
 
+    /// <summary>Lịch sử đối soát đã xử lý. Admin: tất cả; Provider: cơ sở của mình.</summary>
+    [HttpGet("history")]
+    [Authorize(Roles = "Admin,Provider")]
+    public async Task<IActionResult> GetHistory()
+    {
+        return Ok(await _paymentService.GetHistoryAsync(User.GetUserId(), User.GetUserRole()));
+    }
+
+    /// <summary>Tổng hợp doanh thu và lợi nhuận. Admin: phí nền tảng toàn sàn; Provider: phần của cơ sở mình.</summary>
+    [HttpGet("summary")]
+    [Authorize(Roles = "Admin,Provider")]
+    public async Task<IActionResult> GetSummary()
+    {
+        return Ok(await _paymentService.GetSummaryAsync(User.GetUserId(), User.GetUserRole()));
+    }
+
     /// <summary>Từ chối đơn đặt sân đang chờ; nếu đã trừ ví thì hoàn tiền về ví.</summary>
     [HttpPost("{code}/reject")]
     [Authorize(Roles = "Admin,Provider")]

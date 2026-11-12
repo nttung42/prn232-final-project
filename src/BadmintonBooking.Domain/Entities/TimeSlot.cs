@@ -13,6 +13,11 @@ public class TimeSlot
     [ForeignKey(nameof(Facility))]
     public int FacilityId { get; set; }
 
+    /// <summary>Khung giờ thuộc riêng từng sân con (mỗi sân có bảng giá và lịch riêng).</summary>
+    [Required]
+    [ForeignKey(nameof(Court))]
+    public int CourtId { get; set; }
+
     [Required(ErrorMessage = "Tên khung giờ không được để trống")]
     [StringLength(50)]
     public string SlotName { get; set; } = string.Empty;
@@ -34,6 +39,7 @@ public class TimeSlot
 
     // Navigation properties
     public virtual Facility? Facility { get; set; }
+    public virtual Court? Court { get; set; }
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 }
 

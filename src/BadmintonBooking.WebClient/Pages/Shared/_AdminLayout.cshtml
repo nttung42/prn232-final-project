@@ -7,20 +7,18 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+
+    <link rel="stylesheet" href="~/css/site.css" />
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        admin: '#0b1c30',
-                        primary: '#00685f',
-                        surface: '#f8f9ff'
-                    }
+                    fontFamily: { sans: ['Geist', 'Inter', 'system-ui', 'sans-serif'] },
+                    colors: { primary: '#06525c', surface: '#f6f8f8' }
                 }
             }
         };
@@ -30,69 +28,64 @@
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body class="bg-[#f8f9ff] font-sans text-[#0b1c30] min-h-screen flex antialiased">
-    <!-- Admin Left Sidebar -->
-    <aside class="w-64 bg-[#0b1c30] text-white flex flex-col justify-between p-6 shrink-0 fixed h-full z-40">
+<body class="min-h-screen flex antialiased">
+    <!-- Sidebar quản trị -->
+    <aside class="w-60 bg-[#0f1f1d] text-white flex flex-col justify-between p-5 shrink-0 fixed h-full z-40">
         <div>
-            <div class="flex items-center gap-2 mb-8">
-                <span class="material-symbols-outlined text-[28px] text-[#6df5e1]">sports_tennis</span>
-                <div>
-                    <span class="font-bold text-lg text-white block leading-tight">CourtSide</span>
-                    <span class="text-[10px] uppercase tracking-widest font-semibold text-slate-400">System Administrator</span>
+            <div class="flex items-center gap-2.5 px-2 mb-8">
+                <span class="w-8 h-8 rounded-lg bg-[#06525c] flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[18px] text-[#6df5e1]">sports_tennis</span>
+                </span>
+                <div class="leading-tight">
+                    <span class="font-extrabold text-[15px] block">CourtSide</span>
+                    <span class="text-[10px] uppercase tracking-[0.12em] font-semibold text-[#8a9895]">Quản trị hệ thống</span>
                 </div>
             </div>
 
-            <nav class="space-y-1">
-                <a href="/Admin/Dashboard" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-                    <span class="material-symbols-outlined text-[20px]">analytics</span>
-                    <span>Thống kê Dashboard</span>
+            <p class="cs-eyebrow px-3 mb-2 text-[#5f6f6b]">Quản lý</p>
+            <nav class="space-y-0.5">
+                <a href="/Admin/Dashboard" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#b9c7c3] hover:bg-white/5 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[19px]">analytics</span>
+                    <span>Tổng quan & lợi nhuận</span>
                 </a>
-                <a href="/Admin/Facilities" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-                    <span class="material-symbols-outlined text-[20px]">fact_check</span>
-                    <span>Kiểm duyệt Cơ sở</span>
+                <a href="/Admin/Facilities" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#b9c7c3] hover:bg-white/5 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[19px]">fact_check</span>
+                    <span>Kiểm duyệt cơ sở</span>
                 </a>
-                <a href="/Admin/Users" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-                    <span class="material-symbols-outlined text-[20px]">manage_accounts</span>
-                    <span>Quản lý Người dùng</span>
+                <a href="/Admin/Users" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#b9c7c3] hover:bg-white/5 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[19px]">manage_accounts</span>
+                    <span>Người dùng</span>
                 </a>
-                <a href="/Admin/Topups" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition-all">
-                    <span class="material-symbols-outlined text-[20px]">account_balance_wallet</span>
-                    <span>Đối soát Nạp ví</span>
+                <a href="/Admin/Topups" class="flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-semibold text-[#b9c7c3] hover:bg-white/5 hover:text-white transition-colors">
+                    <span class="material-symbols-outlined text-[19px]">account_balance</span>
+                    <span>Đối soát chuyển khoản</span>
                 </a>
             </nav>
         </div>
 
-        <div class="pt-6 border-t border-slate-800 space-y-3">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-slate-800 text-[#6df5e1] font-bold flex items-center justify-center text-sm">
-                    AD
-                </div>
-                <div class="overflow-hidden">
-                    <p id="adminName" class="text-xs font-bold text-white truncate">Administrator</p>
-                    <p id="adminEmail" class="text-[11px] text-slate-400 truncate">admin@courtside.vn</p>
+        <div class="pt-5 border-t border-white/10 space-y-3">
+            <div class="flex items-center gap-3 px-1">
+                <div class="w-9 h-9 rounded-full bg-white/10 text-[#6df5e1] font-bold flex items-center justify-center text-xs">AD</div>
+                <div class="overflow-hidden leading-tight">
+                    <p id="adminName" class="text-[13px] font-semibold text-white truncate">Administrator</p>
+                    <p id="adminEmail" class="text-[11px] text-[#8a9895] truncate">admin@courtside.vn</p>
                 </div>
             </div>
-            <a href="/" class="flex items-center gap-2 text-xs font-semibold text-slate-400 hover:text-white transition-colors py-1">
+            <a href="/" class="flex items-center gap-2 px-2 text-[12px] font-semibold text-[#8a9895] hover:text-white transition-colors">
                 <span class="material-symbols-outlined text-[16px]">arrow_back</span>
                 <span>Về trang chủ</span>
             </a>
-            <button onclick="AuthManager.logout()" class="w-full flex items-center justify-center gap-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold py-2 rounded-xl transition-colors">
+            <button onclick="AuthManager.logout()" class="cs-btn cs-btn-block bg-white/5 hover:bg-white/10 text-[#f5b5ae] text-[12px] h-9">
                 <span class="material-symbols-outlined text-[16px]">logout</span>
                 <span>Đăng xuất</span>
             </button>
         </div>
     </aside>
 
-    <!-- Main Content Area -->
-    <div class="flex-grow pl-64 flex flex-col min-h-screen">
-        <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-30">
-            <h1 class="text-lg font-bold text-slate-800">@ViewData["Title"]</h1>
-            <div class="flex items-center gap-3">
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Admin Session Active
-                </span>
-            </div>
+    <div class="flex-grow pl-60 flex flex-col min-h-screen">
+        <header class="h-16 bg-white/90 backdrop-blur-md border-b border-[#e2e8e6] px-8 flex items-center justify-between sticky top-0 z-30">
+            <h1 class="text-[15px] font-bold text-[#0f1f1d]">@ViewData["Title"]</h1>
+            <span class="cs-badge cs-badge-success">Phiên quản trị</span>
         </header>
 
         <main class="p-8 flex-grow">
@@ -115,4 +108,3 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
-

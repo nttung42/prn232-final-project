@@ -8,7 +8,7 @@
     <!-- Top Action Toolbar with Content Negotiation Demo -->
     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-            <h2 class="text-xl font-black text-slate-800">Quản lý Đơn đặt sân</h2>
+            <h2 class="cs-title">Quản lý Đơn đặt sân</h2>
             <p class="text-xs text-slate-500">Theo dõi khách hàng đặt sân và xuất báo cáo dữ liệu nhiều định dạng</p>
         </div>
 
@@ -41,7 +41,7 @@
         <div class="flex flex-wrap items-center gap-3">
             <div>
                 <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Trạng thái đơn</label>
-                <select id="filterBookingStatus" onchange="loadBookings()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00685f]">
+                <select id="filterBookingStatus" onchange="loadBookings()" class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#06525c]">
                     <option value="">Tất cả trạng thái</option>
                     <option value="Pending">Chờ duyệt (Pending)</option>
                     <option value="Confirmed">Đã duyệt (Confirmed)</option>
@@ -53,7 +53,7 @@
             <div>
                 <label class="block text-[10px] font-bold uppercase text-slate-400 mb-0.5">Ngày chơi (PlayDate)</label>
                 <input type="date" id="filterPlayDate" onchange="loadBookings()" 
-                       class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00685f]" />
+                       class="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#06525c]" />
             </div>
 
             <button onclick="clearFilters()" class="text-xs font-bold text-slate-500 hover:text-slate-800 self-end py-1.5 px-2">
@@ -65,7 +65,7 @@
     </div>
 
     <!-- Bookings Data Table -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+    <div class="cs-card cs-table-wrap">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
                 <thead>
@@ -83,7 +83,7 @@
                 <tbody id="providerBookingsTbody" class="divide-y divide-slate-100">
                     <tr>
                         <td colspan="8" class="py-12 text-center text-slate-400">
-                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#06525c] border-t-transparent"></div>
                             <p class="mt-2">Đang tải danh sách đơn...</p>
                         </td>
                     </tr>
@@ -121,10 +121,10 @@
 
             tbody.innerHTML = bookings.map(b => {
                 let statusBadge = "";
-                if (b.status === "Pending") statusBadge = `<span class="bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Chờ duyệt</span>`;
-                else if (b.status === "Confirmed") statusBadge = `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã duyệt</span>`;
+                if (b.status === "Pending") statusBadge = `<span class="cs-badge cs-badge-warning">Chờ duyệt</span>`;
+                else if (b.status === "Confirmed") statusBadge = `<span class="cs-badge cs-badge-success">Đã duyệt</span>`;
                 else if (b.status === "Completed") statusBadge = `<span class="bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Hoàn tất</span>`;
-                else if (b.status === "Cancelled") statusBadge = `<span class="bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-1 rounded-full text-[10px] font-bold">Đã hủy</span>`;
+                else if (b.status === "Cancelled") statusBadge = `<span class="cs-badge cs-badge-danger">Đã hủy</span>`;
 
                 return `
                     <tr class="hover:bg-slate-50/70 transition-colors">
@@ -143,7 +143,7 @@
                         <td class="py-4 px-6 font-medium text-slate-600">
                             ${formatDate(b.playDate)}
                         </td>
-                        <td class="py-4 px-6 font-bold text-[#00685f]">
+                        <td class="py-4 px-6 font-bold text-[#06525c]">
                             ${formatCurrency(b.totalPrice)}
                         </td>
                         <td class="py-4 px-6">
@@ -152,17 +152,12 @@
                         <td class="py-4 px-6 text-right">
                             <div class="flex items-center justify-end gap-1.5">
                                 ${b.status === "Pending" ? `
-                                    <button onclick="updateStatus(${b.id}, 'Confirmed')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors">
+                                    <button onclick="updateStatus(${b.id}, 'Confirmed')" class="cs-btn cs-btn-success cs-btn-sm">
                                         Duyệt
                                     </button>
                                 ` : ""}
-                                ${b.status === "Confirmed" ? `
-                                    <button onclick="updateStatus(${b.id}, 'Completed')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors">
-                                        Xong
-                                    </button>
-                                ` : ""}
-                                ${b.status !== "Cancelled" && b.status !== "Completed" ? `
-                                    <button onclick="updateStatus(${b.id}, 'Cancelled')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-2.5 py-1 rounded-lg font-bold text-[11px] transition-colors">
+                                ${b.status === "Pending" ? `
+                                    <button onclick="updateStatus(${b.id}, 'Cancelled')" class="cs-btn cs-btn-danger cs-btn-sm">
                                         Hủy
                                     </button>
                                 ` : ""}
@@ -187,7 +182,7 @@
             Swal.fire({ icon: "success", title: "Cập nhật thành công!", timer: 1200, showConfirmButton: false });
             loadBookings();
         } catch (err) {
-            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#00685f" });
+            Swal.fire({ icon: "error", title: "Lỗi", text: err.message, confirmButtonColor: "#06525c" });
         }
     }
 
@@ -211,7 +206,7 @@
                 icon: "success",
                 title: "Xuất dữ liệu thành công!",
                 text: `Tệp ${filename} đã được tải về máy của bạn.`,
-                confirmButtonColor: "#00685f",
+                confirmButtonColor: "#06525c",
                 timer: 2000
             });
         } catch (err) {
@@ -219,7 +214,7 @@
                 icon: "error",
                 title: "Lỗi xuất dữ liệu",
                 text: err.message,
-                confirmButtonColor: "#00685f"
+                confirmButtonColor: "#06525c"
             });
         }
     }

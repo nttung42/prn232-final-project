@@ -121,9 +121,9 @@ public class BookingService : IBookingService
             return ApiResponse<BookingDto>.Fail("Khung giờ hiện không khả dụng.");
         }
 
-        if (slot.FacilityId != court.FacilityId)
+        if (slot.CourtId != court.Id)
         {
-            return ApiResponse<BookingDto>.Fail("Khung giờ và sân cầu lông không thuộc cùng một cơ sở.");
+            return ApiResponse<BookingDto>.Fail("Khung giờ này không thuộc sân đã chọn.");
         }
 
         // 5. Anti Double-Booking check (BR-03)
@@ -232,14 +232,9 @@ public class BookingService : IBookingService
             }
             else if (booking.Status == BookingStatuses.Confirmed)
             {
-                if (newStatus == BookingStatuses.Completed || newStatus == BookingStatuses.Cancelled)
-                {
-                    booking.Status = newStatus;
-                }
-                else
-                {
-                    return ApiResponse<BookingDto>.Fail("Đơn đã xác nhận chỉ có thể chuyển sang Hoàn thành (Completed) hoặc Hủy (Cancelled).");
-                }
+                // Đã đồng ý cho thuê: chủ sân không tự hủy, và không chuyển tay sang Completed.
+                // Hệ thống tự hoàn thành đơn sau giờ kết thúc + 5 phút (PaymentExpiryService).
+                return ApiResponse<BookingDto>.Fail("Đơn đã xác nhận không thể hủy hoặc chuyển tay. Hệ thống sẽ tự hoàn thành sau khi hết giờ.");
             }
         }
         else if (role == AppRoles.Admin)
@@ -265,6 +260,8 @@ public class BookingService : IBookingService
                 {
                     order.Status = PaymentOrderStatuses.Paid;
                     order.PaidAt = DateTime.UtcNow;
+                    order.ConfirmedByUserId = currentUserId;
+                    order.ConfirmedAt = DateTime.UtcNow;
                 }
                 else
                 {

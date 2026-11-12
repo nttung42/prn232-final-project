@@ -12,8 +12,8 @@
                 <span>1. Chọn sân</span>
             </div>
             <div class="w-12 h-0.5 bg-emerald-200"></div>
-            <div class="flex items-center gap-2 text-[#00685f] font-bold text-xs">
-                <span class="w-7 h-7 rounded-full bg-[#00685f] text-white flex items-center justify-center text-xs">2</span>
+            <div class="flex items-center gap-2 text-[#06525c] font-bold text-xs">
+                <span class="w-7 h-7 rounded-full bg-[#06525c] text-white flex items-center justify-center text-xs">2</span>
                 <span>2. Thanh toán & Xác nhận</span>
             </div>
             <div class="w-12 h-0.5 bg-slate-200"></div>
@@ -57,7 +57,7 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">Ghi chú cho chủ sân</label>
                     <textarea id="checkoutNote" rows="2" placeholder="Ví dụ: Đặt thêm 2 chai nước khoáng, yêu cầu bật máy lạnh sớm..."
-                              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#00685f]"></textarea>
+                              class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#06525c]"></textarea>
                 </div>
             </div>
 
@@ -66,26 +66,26 @@
                 <h2 class="text-base font-black text-slate-800">Phương thức thanh toán</h2>
                 
                 <div class="space-y-3">
-                    <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-[#00685f] bg-[#00685f]/5 cursor-pointer">
+                    <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-[#06525c] bg-[#06525c]/5 cursor-pointer">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[#00685f] text-[24px]">qr_code_2</span>
+                            <span class="material-symbols-outlined text-[#06525c] text-[24px]">qr_code_2</span>
                             <div>
                                 <span class="font-bold text-xs text-slate-800 block">Chuyển khoản VietQR / Napas 247</span>
                                 <span class="text-[10px] text-slate-500">Chủ sân xác nhận sau khi nhận tiền</span>
                             </div>
                         </div>
-                        <input type="radio" name="payMethod" value="QR" checked class="text-[#00685f]" />
+                        <input type="radio" name="payMethod" value="QR" checked class="text-[#06525c]" />
                     </label>
 
                     <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition-colors">
                         <div class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-[#00685f] text-[24px]">account_balance_wallet</span>
+                            <span class="material-symbols-outlined text-[#06525c] text-[24px]">account_balance_wallet</span>
                             <div>
                                 <span class="font-bold text-xs text-slate-800 block">Ví CourtSide (Số dư: <span id="walletBalanceText">đang tải...</span>)</span>
                                 <span class="text-[10px] text-slate-500 font-semibold">Trừ trực tiếp từ số dư ví, đơn được xác nhận ngay</span>
                             </div>
                         </div>
-                        <input type="radio" name="payMethod" value="Wallet" class="text-[#00685f]" />
+                        <input type="radio" name="payMethod" value="Wallet" class="text-[#06525c]" />
                     </label>
 
                     <label class="flex items-center justify-between p-4 rounded-2xl border-2 border-slate-200 bg-white hover:border-slate-300 cursor-pointer transition-colors">
@@ -96,7 +96,7 @@
                                 <span class="text-[10px] text-slate-500">Thanh toán tiền mặt hoặc quẹt thẻ khi đến nhận sân</span>
                             </div>
                         </div>
-                        <input type="radio" name="payMethod" value="Cash" class="text-[#00685f]" />
+                        <input type="radio" name="payMethod" value="Cash" class="text-[#06525c]" />
                     </label>
                 </div>
             </div>
@@ -122,7 +122,7 @@
                     </div>
                     <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
                         <span class="text-sm font-bold text-slate-800">Tổng thanh toán:</span>
-                        <span class="text-2xl font-black text-[#00685f]" id="summaryTotalPrice">0đ</span>
+                        <span class="text-2xl font-black text-[#06525c]" id="summaryTotalPrice">0đ</span>
                     </div>
                 </div>
 
@@ -130,13 +130,17 @@
                 <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 flex flex-col items-center text-center">
                     <span class="text-[10px] font-bold uppercase text-slate-400 mb-2 tracking-wider">Quét mã chuyển khoản tức thì</span>
                     <div class="w-44 h-44 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center">
-                        <img id="vietqrImg" src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=COURTSIDE-BOOKING" 
-                             class="w-full h-full object-contain" alt="QR Code Thanh toán" />
+                        <!-- Mã QR thật chỉ hiện sau khi tạo đơn (xem showBankPaymentAndWait) -->
+                        <div id="vietqrPlaceholder" class="text-center text-[11px] text-slate-400 px-2">
+                            <span class="material-symbols-outlined text-3xl text-slate-300">qr_code_2</span>
+                            <p class="mt-1">Nhấn xác nhận để tạo mã QR</p>
+                        </div>
+                        <img id="vietqrImg" src="" alt="Mã QR chuyển khoản" class="hidden w-full h-full object-contain" />
                     </div>
                     <div class="mt-3 text-[11px] text-slate-600">
                         <p class="font-bold text-slate-800">MB BANK: 999988887777</p>
                         <p class="text-slate-500">Chủ TK: CTY CP COURTSIDE VIETNAM</p>
-                        <p class="text-[10px] text-[#00685f] font-mono mt-1 font-bold">Nội dung: CSIDE BK <span id="refCode">2026</span></p>
+                        <p class="text-[10px] text-[#06525c] font-mono mt-1 font-bold">Nội dung: <span id="refCode">sẽ hiển thị sau khi tạo đơn</span></p>
                     </div>
                     <div class="mt-3 text-[10px] text-rose-500 font-semibold flex items-center gap-1">
                         <span class="material-symbols-outlined text-[14px]">timer</span>
@@ -145,7 +149,7 @@
                 </div>
 
                 <button onclick="confirmBooking()" id="btnConfirmBooking"
-                        class="w-full py-4 rounded-xl bg-[#00685f] hover:bg-[#008378] text-white font-bold text-sm tracking-wide shadow-xl shadow-[#00685f]/30 transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
+                        class="w-full py-4 rounded-xl bg-[#06525c] hover:bg-[#053f47] text-white font-bold text-sm tracking-wide shadow-sm transition-all hover:scale-[1.02] flex items-center justify-center gap-2">
                     <span class="material-symbols-outlined text-lg">check_circle</span>
                     <span>Xác nhận & Hoàn tất Đặt sân</span>
                 </button>
@@ -169,6 +173,23 @@
     document.addEventListener("DOMContentLoaded", function () {
         if (!AuthManager.requireAuth()) return;
 
+        // Chỉ người chơi mới đặt sân (API tạo đơn chỉ cho Player/Admin). Chặn sớm để không lỗi sau khi bấm.
+        const currentUser = AuthManager.getUser();
+        if (currentUser && currentUser.role !== "Player") {
+            const confirmBtn = document.getElementById("btnConfirmBooking");
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.onclick = null;
+                confirmBtn.classList.add("opacity-50", "cursor-not-allowed");
+            }
+            Swal.fire({
+                icon: "info",
+                title: "Chỉ người chơi mới đặt được sân",
+                text: "Bạn đang đăng nhập với vai trò chủ sân. Hãy đăng nhập bằng tài khoản người chơi để đặt sân.",
+                confirmButtonColor: "#06525c"
+            });
+        }
+
         if (!courtId || !slotId) {
             alert("Thông tin đặt sân không hợp lệ!");
             window.location.href = "/Player/Facilities";
@@ -186,8 +207,10 @@
         loadWalletBalance();
 
         // Mã chuyển khoản chỉ được tạo từ server sau khi đặt đơn (xem confirmBooking)
-        document.getElementById("refCode").textContent = "—";
+        document.getElementById("refCode").textContent = "sẽ hiển thị sau khi tạo đơn";
+        document.getElementById("vietqrImg").classList.add("hidden");
         document.getElementById("vietqrImg").removeAttribute("src");
+        document.getElementById("vietqrPlaceholder").classList.remove("hidden");
 
         // Countdown timer 10 phút
         let timeLeft = 600;
@@ -203,7 +226,7 @@
                     icon: "warning",
                     title: "Hết thời gian giữ chỗ",
                     text: "Vui lòng chọn lại sân để tiếp tục.",
-                    confirmButtonColor: "#00685f"
+                    confirmButtonColor: "#06525c"
                 }).then(() => {
                     window.location.href = `/Player/FacilityDetail?id=${facilityId}`;
                 });
@@ -217,6 +240,8 @@
     function showBankPaymentAndWait(pay, bookingId) {
         document.getElementById("refCode").textContent = pay.code;
         document.getElementById("vietqrImg").src = pay.qrUrl;
+        document.getElementById("vietqrImg").classList.remove("hidden");
+        document.getElementById("vietqrPlaceholder").classList.add("hidden");
         let timer = null;
         let finished = false;
         const stop = () => { if (timer) clearInterval(timer); timer = null; };
@@ -232,7 +257,7 @@
                         icon: "success",
                         title: "Đặt sân thành công!",
                         text: `Đã nhận thanh toán. Mã đơn #BK-${bookingId} đã được xác nhận.`,
-                        confirmButtonColor: "#00685f"
+                        confirmButtonColor: "#06525c"
                     }).then(() => { window.location.href = "/Player/MyBookings"; });
                 } else if (status.status === "Expired") {
                     finished = true;
@@ -242,7 +267,7 @@
                         icon: "warning",
                         title: "Hết thời gian thanh toán",
                         text: "Đơn đã bị hủy do chưa nhận được tiền. Vui lòng đặt lại.",
-                        confirmButtonColor: "#00685f"
+                        confirmButtonColor: "#06525c"
                     }).then(() => { window.location.href = "/Player/MyBookings"; });
                 }
             } catch (e) { /* lỗi mạng tạm thời: thử lại */ }
@@ -287,7 +312,7 @@
                 icon: "warning",
                 title: "Số dư ví không đủ",
                 text: `Số dư hiện có ${formatCurrency(walletBalance)}, cần ${formatCurrency(price)}. Vui lòng nạp thêm hoặc chọn phương thức khác.`,
-                confirmButtonColor: "#00685f"
+                confirmButtonColor: "#06525c"
             });
             return;
         }
@@ -331,14 +356,14 @@
                         icon: "success",
                         title: "Đã trừ ví, chờ xác nhận",
                         text: `Mã đơn: #BK-${res.id}. Đã giữ tiền trong ví; chủ sân sẽ xác nhận đơn. Nếu bị từ chối, tiền sẽ hoàn về ví.`,
-                        confirmButtonColor: "#00685f"
+                        confirmButtonColor: "#06525c"
                     }).then(() => { window.location.href = "/Player/MyBookings"; });
                 } catch (payErr) {
                     Swal.fire({
                         icon: "warning",
                         title: "Đơn đã tạo nhưng chưa thanh toán",
                         text: `${payErr.message}. Đơn #BK-${res.id} đang chờ thanh toán trong "Lịch đặt của tôi".`,
-                        confirmButtonColor: "#00685f"
+                        confirmButtonColor: "#06525c"
                     }).then(() => { window.location.href = "/Player/MyBookings"; });
                 }
                 return;
@@ -348,7 +373,7 @@
                 icon: "success",
                 title: "Đặt sân thành công!",
                 text: `Mã đơn đặt: #BK-${res.id}. Trạng thái: ${res.status}. Vui lòng chuyển khoản hoặc thanh toán tại quầy để chủ sân xác nhận.`,
-                confirmButtonColor: "#00685f"
+                confirmButtonColor: "#06525c"
             }).then(() => {
                 window.location.href = "/Player/MyBookings";
             });
@@ -357,8 +382,10 @@
             Swal.fire({
                 icon: "error",
                 title: "Đặt sân không thành công",
-                text: err.message || "Ca giờ có thể vừa bị người khác đặt.",
-                confirmButtonColor: "#00685f"
+                text: err.message === "Forbidden"
+                    ? "Tài khoản này không có quyền đặt sân. Hãy đăng nhập bằng tài khoản người chơi."
+                    : (err.message || "Ca giờ có thể vừa bị người khác đặt."),
+                confirmButtonColor: "#06525c"
             });
             btn.disabled = false;
             btn.innerHTML = `<span class="material-symbols-outlined text-lg">check_circle</span><span>Xác nhận & Hoàn tất Đặt sân</span>`;

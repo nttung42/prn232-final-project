@@ -1,15 +1,71 @@
+/* =========================================================
+   CourtSide — design tokens & shared components
+   Nguyên tắc: màu phẳng, thang chữ rõ, bóng nhẹ, focus nhìn thấy được.
+   ========================================================= */
+
+:root {
+  /* Màu thương hiệu */
+  --cs-primary: #06525c;
+  --cs-primary-hover: #042f36;
+  --cs-primary-soft: #ebf0ee;
+  --cs-accent: #6df5e1;
+
+  /* Nền & bề mặt */
+  --cs-bg: #f6f8f8;
+  --cs-surface: #ffffff;
+  --cs-surface-muted: #f1f5f4;
+  --cs-border: #e2e8e6;
+  --cs-border-strong: #cbd5d2;
+
+  /* Chữ */
+  --cs-text: #0f1f1d;
+  --cs-text-muted: #5b6b68;
+  --cs-text-subtle: #8a9895;
+
+  /* Trạng thái */
+  --cs-success: #0f7a4a;
+  --cs-success-soft: #e7f6ee;
+  --cs-warning: #a15c07;
+  --cs-warning-soft: #fdf3e1;
+  --cs-danger: #b42318;
+  --cs-danger-soft: #fdecea;
+  --cs-info: #1d4ed8;
+  --cs-info-soft: #e8f0fe;
+
+  /* Bo góc */
+  --cs-radius-sm: 8px;
+  --cs-radius: 12px;
+  --cs-radius-lg: 20px;
+  --cs-radius-pill: 999px;
+
+  /* Bóng */
+  --cs-shadow-sm: 0 1px 2px rgba(15, 31, 29, 0.06);
+  --cs-shadow: 0 1px 3px rgba(15, 31, 29, 0.08), 0 4px 12px rgba(15, 31, 29, 0.04);
+  --cs-shadow-lg: 0 10px 30px rgba(15, 31, 29, 0.10);
+
+  /* Chuyển động theo taste-skill system.css: --dur 180ms, --ease cubic-bezier(.2,.8,.2,1) */
+  --cs-dur: 180ms;
+  --cs-ease: cubic-bezier(.2, .8, .2, 1);
+
+  /* Khoảng cách & chữ */
+  --cs-space-1: 4px;
+  --cs-space-2: 8px;
+  --cs-space-3: 12px;
+  --cs-space-4: 16px;
+  --cs-space-6: 24px;
+  --cs-space-8: 32px;
+  --cs-font: 'Geist', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --cs-focus: 0 0 0 3px rgba(0, 104, 95, 0.25);
+}
+
 html {
   font-size: 14px;
 }
 
 @media (min-width: 768px) {
   html {
-    font-size: 16px;
+    font-size: 15px;
   }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
@@ -18,5 +74,178 @@ html {
 }
 
 body {
-  margin-bottom: 60px;
+  margin-bottom: 0;
+  background: var(--cs-bg);
+  color: var(--cs-text);
+  font-family: var(--cs-font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
+
+/* Tiêu đề & chữ phụ dùng chung */
+.cs-title {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--cs-text);
+}
+.cs-subtitle {
+  font-size: 0.8125rem;
+  color: var(--cs-text-muted);
+  line-height: 1.5;
+}
+.cs-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cs-text-subtle);
+}
+
+/* Card */
+.cs-card {
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: var(--cs-shadow-sm);
+}
+.cs-card-pad { padding: var(--cs-space-6); }
+.cs-card-muted { background: var(--cs-surface-muted); border-color: transparent; box-shadow: none; }
+
+/* Nút */
+.cs-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cs-space-2);
+  height: 38px;
+  padding: 0 var(--cs-space-4);
+  border-radius: var(--cs-radius-sm);
+  border: 1px solid transparent;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color var(--cs-dur) var(--cs-ease), border-color var(--cs-dur) var(--cs-ease), color var(--cs-dur) var(--cs-ease), box-shadow var(--cs-dur) var(--cs-ease), transform var(--cs-dur) var(--cs-ease);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.cs-btn:active { transform: translateY(1px); }
+.cs-btn:focus-visible { outline: none; box-shadow: var(--cs-focus); }
+.cs-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.cs-btn-primary { background: var(--cs-primary); color: #fff; box-shadow: var(--cs-shadow-sm); }
+.cs-btn-primary:hover { background: var(--cs-primary-hover); }
+.cs-btn-secondary { background: var(--cs-surface); color: var(--cs-text); border-color: var(--cs-border-strong); }
+.cs-btn-secondary:hover { background: var(--cs-surface-muted); }
+.cs-btn-ghost { background: transparent; color: var(--cs-text-muted); }
+.cs-btn-ghost:hover { background: var(--cs-surface-muted); color: var(--cs-text); }
+.cs-btn-danger { background: var(--cs-danger-soft); color: var(--cs-danger); }
+.cs-btn-danger:hover { background: #fbd9d5; }
+.cs-btn-success { background: var(--cs-success-soft); color: var(--cs-success); }
+.cs-btn-success:hover { background: #d3efdf; }
+.cs-btn-sm { height: 30px; padding: 0 var(--cs-space-3); font-size: 0.75rem; border-radius: var(--cs-radius-sm); }
+.cs-btn-block { width: 100%; }
+
+/* Badge / trạng thái */
+.cs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: var(--cs-radius-pill);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.4;
+  background: var(--cs-surface-muted);
+  color: var(--cs-text-muted);
+  border: 1px solid transparent;
+}
+.cs-badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: .8;
+}
+.cs-badge-success { background: var(--cs-success-soft); color: var(--cs-success); }
+.cs-badge-warning { background: var(--cs-warning-soft); color: var(--cs-warning); }
+.cs-badge-danger  { background: var(--cs-danger-soft);  color: var(--cs-danger); }
+.cs-badge-info    { background: var(--cs-info-soft);    color: var(--cs-info); }
+.cs-badge-primary { background: var(--cs-primary-soft); color: var(--cs-primary); }
+
+/* Input */
+.cs-input,
+.cs-select,
+.cs-textarea {
+  width: 100%;
+  height: 40px;
+  padding: 0 var(--cs-space-3);
+  border-radius: var(--cs-radius);
+  border: 1px solid var(--cs-border-strong);
+  background: var(--cs-surface);
+  color: var(--cs-text);
+  font-size: 0.875rem;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.cs-textarea { height: auto; min-height: 88px; padding: var(--cs-space-3); }
+.cs-input::placeholder, .cs-textarea::placeholder { color: var(--cs-text-subtle); }
+.cs-input:hover, .cs-select:hover, .cs-textarea:hover { border-color: #aab8b4; }
+.cs-input:focus, .cs-select:focus, .cs-textarea:focus {
+  outline: none;
+  border-color: var(--cs-primary);
+  box-shadow: var(--cs-focus);
+}
+.cs-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--cs-text-muted);
+}
+
+/* Bảng */
+.cs-table-wrap {
+  background: var(--cs-surface);
+  border: 1px solid var(--cs-border);
+  border-radius: var(--cs-radius-lg);
+  box-shadow: var(--cs-shadow-sm);
+  overflow: hidden;
+}
+.cs-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.8125rem; }
+.cs-table th {
+  background: var(--cs-surface-muted);
+  color: var(--cs-text-muted);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--cs-border);
+}
+.cs-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--cs-border);
+  vertical-align: middle;
+  color: var(--cs-text);
+}
+.cs-table tbody tr { transition: background-color .12s ease; }
+.cs-table tbody tr:hover { background: #f9fbfa; }
+.cs-table tbody tr:last-child td { border-bottom: 0; }
+.cs-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Trạng thái rỗng */
+.cs-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--cs-text-subtle);
+  font-size: 0.8125rem;
+}
+
+/* Liên kết */
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: none; box-shadow: var(--cs-focus); border-radius: 6px; }
+
+/* Thanh cuộn mảnh */
+* { scrollbar-width: thin; scrollbar-color: #c7d2cf transparent; }
