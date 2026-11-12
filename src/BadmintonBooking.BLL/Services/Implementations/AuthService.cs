@@ -109,7 +109,8 @@ public class AuthService : IAuthService
 
     private string GenerateJwtToken(User user)
     {
-        var jwtKey = _configuration["Jwt:Key"] ?? "BadmintonBookingSystemSuperSecretKey2026!@#$%^&*()";
+        var jwtKey = _configuration["Jwt:Key"]
+            ?? throw new InvalidOperationException("Chưa cấu hình Jwt:Key (biến môi trường Jwt__Key).");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "BadmintonBookingAPI";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "BadmintonBookingClients";
         var expiryHours = int.TryParse(_configuration["Jwt:ExpiryInHours"], out var h) ? h : 24;

@@ -76,7 +76,8 @@
     async function loadDashboard() {
         try {
             // Lấy dữ liệu thống kê từ dashboard API
-            const stats = await callApi("/api/dashboard/stats");
+            // API trả về ApiResponse { success, message, data }
+            const stats = (await callApi("/api/dashboard/stats")).data;
             document.getElementById("kpiTotalUsers").textContent = stats.totalUsers || 0;
             document.getElementById("kpiTotalFacilities").textContent = stats.totalFacilities || 0;
             document.getElementById("kpiPendingFacilities").textContent = stats.pendingFacilities || 0;

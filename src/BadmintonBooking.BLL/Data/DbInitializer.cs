@@ -7,7 +7,12 @@ namespace BadmintonBooking.BLL.Data;
 
 public static class DbInitializer
 {
-    public static async Task SeedAsync(AppDbContext context)
+    /// <summary>
+    /// Seed dữ liệu mẫu. Mật khẩu tài khoản demo lấy từ cấu hình Seed:AdminPassword,
+    /// Seed:ProviderPassword, Seed:PlayerPassword (biến môi trường Seed__AdminPassword...).
+    /// Nếu không cấu hình, mỗi mật khẩu được sinh ngẫu nhiên và in ra MỘT lần khi seed lần đầu.
+    /// </summary>
+    public static async Task SeedAsync(AppDbContext context, Microsoft.Extensions.Configuration.IConfiguration? config = null)
     {
         // Automatically apply any pending migrations
         if (context.Database.IsRelational())
@@ -15,10 +20,22 @@ public static class DbInitializer
             await context.Database.MigrateAsync();
         }
 
+        // Mật khẩu demo mặc định (dự án demo local). Có thể ghi đè bằng Seed:<Key> trong cấu hình.
+        string Pwd(string key, string fallback)
+        {
+            var configured = config?[$"Seed:{key}"];
+            return string.IsNullOrWhiteSpace(configured) ? fallback : configured;
+        }
+
+
         if (await context.Users.AnyAsync())
         {
             return; // Data already seeded
         }
+
+        var adminPwd = Pwd("AdminPassword", "Admin@123");
+        var providerPwd = Pwd("ProviderPassword", "Provider@123");
+        var playerPwd = Pwd("PlayerPassword", "Player@123");
 
         // 1. Seed Users
         var admin = new User
@@ -26,7 +43,7 @@ public static class DbInitializer
             FullName = "Hệ Thống Admin",
             Email = "admin@badminton.com",
             PhoneNumber = "0988888888",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin@123"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPwd),
             Role = AppRoles.Admin,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -37,7 +54,7 @@ public static class DbInitializer
             FullName = "Nguyễn Văn Chủ Sân",
             Email = "provider1@badminton.com",
             PhoneNumber = "0977777777",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Provider@123"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(providerPwd),
             Role = AppRoles.Provider,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -48,7 +65,7 @@ public static class DbInitializer
             FullName = "Trần Văn Quản Lý",
             Email = "provider2@badminton.com",
             PhoneNumber = "0966666666",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Provider@123"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(providerPwd),
             Role = AppRoles.Provider,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -59,7 +76,7 @@ public static class DbInitializer
             FullName = "Lê Hoàng Player",
             Email = "player1@badminton.com",
             PhoneNumber = "0912345678",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Player@123"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(playerPwd),
             Role = AppRoles.Player,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -70,7 +87,7 @@ public static class DbInitializer
             FullName = "Phạm Thúy Hằng",
             Email = "player2@badminton.com",
             PhoneNumber = "0923456789",
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword("Player@123"),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(playerPwd),
             Role = AppRoles.Player,
             IsActive = true,
             CreatedAt = DateTime.UtcNow

@@ -67,7 +67,7 @@ Brand & Style:
 Main Content Layout:
 1. Facility Hero & Gallery:
    - Big showcase card with high-resolution badminton facility images, title "Cụm sân Sky Badminton Quận 7", rating badge 4.9 (240 reviews), address "79 Nguyễn Văn Linh, Tân Phú, Q.7, TP.HCM", operating hours "05:00 - 23:00", contact phone.
-   - Amenities badges: "Thảm PVC chuẩn BWF", "Máy lạnh", "Wifi miễn phí", "Bãi đỗ xe ô tô", "Căng tin & Thuê vợt".
+   - Amenities badges: "Thảm PVC", "Máy lạnh", "Wifi miễn phí", "Bãi đỗ xe ô tô", "Căng tin & Thuê vợt".
 2. Interactive Booking Section:
    - Date picker toolbar (Horizontal scrollable days: "Hôm nay, 10/11", "Thứ Hai, 11/11", etc.).
    - Legend bar: "Trống (Có thể đặt) - Xanh lá", "Đang chọn - Teal đậm", "Đã có người đặt - Xám vô hiệu hóa", "Bảo trì - Cam".
@@ -104,7 +104,7 @@ Content Structure (2-Column Grid):
      * Service fee: 0đ.
      * Discount voucher input field with "Áp dụng" button.
      * Total amount: 280.000đ (Big prominent bold teal text).
-   - VietQR Payment Box: Clean QR Code with bank logo, transfer description "COURTSIDE BK9823", countdown timer "Thời gian giữ chỗ: 09:45".
+   - VietQR Payment Box: Clean QR Code with bank logo, transfer description "COURTSIDE BK9823", countdown timer "Vui lòng hoàn tất trong: 09:45" (đây chỉ là gợi ý giao diện, hệ thống chưa giữ chỗ phía server).
    - Primary action button: "Xác nhận đã chuyển khoản" / "Hoàn tất đặt lịch".
    - Safe booking guarantee badge with lock icon.
 ```
@@ -308,5 +308,5 @@ flowchart TD
    * Toàn bộ class Tailwind CSS giữ nguyên vẹn 100%.
 4. **Viết mã JavaScript gọi API:**
    * Thay thế dữ liệu mock trong bảng/thẻ card bằng vòng lặp JS `template literals` gọi từ endpoint ASP.NET Core Web API của bạn.
-   * Đính kèm Header `Authorization: Bearer <token>` thông qua hàm dùng chung `callApi()` đã định nghĩa trong tài liệu kỹ thuật.
+   * Gửi request với `credentials: include` (cookie JWT HttpOnly) và header `X-Requested-With: CourtSideWeb` thông qua hàm dùng chung `callApi()` đã định nghĩa trong tài liệu kỹ thuật (`docs/02`, mục 5.2).
 

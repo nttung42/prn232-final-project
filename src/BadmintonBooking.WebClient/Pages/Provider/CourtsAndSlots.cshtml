@@ -75,7 +75,7 @@
             <div>
                 <label class="block text-xs font-bold text-slate-600 mb-1">Loại thảm sân</label>
                 <select id="courtTypeSelect" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 text-xs focus:ring-2 focus:ring-[#00685f] focus:outline-none">
-                    <option value="PVC">Thảm PVC tiêu chuẩn BWF</option>
+                    <option value="PVC">Thảm PVC</option>
                     <option value="Wooden">Sàn gỗ thi đấu</option>
                     <option value="Acrylic">Sàn Acrylic chống trượt</option>
                 </select>
@@ -145,7 +145,7 @@
                 return;
             }
 
-            select.innerHTML = facilities.map(f => `<option value="${f.id}">${f.name} (${f.district})</option>`).join("");
+            select.innerHTML = facilities.map(f => `<option value="${f.id}">${escapeHtml(f.name)} (${escapeHtml(f.district)})</option>`).join("");
 
             // Lấy id từ query string nếu có
             const paramId = new URLSearchParams(window.location.search).get("facilityId");
@@ -182,8 +182,8 @@
                 courtsDiv.innerHTML = courts.map(c => `
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                         <div>
-                            <div class="font-bold text-xs text-slate-800">${c.courtName}</div>
-                            <div class="text-[10px] text-slate-400">${c.courtType} • ${c.status === "Active" ? "<span class='text-emerald-600 font-bold'>Hoạt động</span>" : "<span class='text-amber-600 font-bold'>Bảo trì</span>"}</div>
+                            <div class="font-bold text-xs text-slate-800">${escapeHtml(c.courtName)}</div>
+                            <div class="text-[10px] text-slate-400">${escapeHtml(c.courtType)} • ${c.status === "Active" ? "<span class='text-emerald-600 font-bold'>Hoạt động</span>" : "<span class='text-amber-600 font-bold'>Bảo trì</span>"}</div>
                         </div>
                         <button onclick="deleteCourt(${c.id})" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors">
                             <span class="material-symbols-outlined text-[18px]">delete</span>
@@ -199,7 +199,7 @@
                 slotsDiv.innerHTML = slots.map(s => `
                     <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between">
                         <div>
-                            <div class="font-bold text-xs text-slate-800">${s.slotName} (${formatTime(s.startTime)} - ${formatTime(s.endTime)})</div>
+                            <div class="font-bold text-xs text-slate-800">${escapeHtml(s.slotName)} (${formatTime(s.startTime)} - ${formatTime(s.endTime)})</div>
                             <div class="text-[11px] font-bold text-[#00685f]">${formatCurrency(s.price)}</div>
                         </div>
                         <button onclick="deleteSlot(${s.id})" class="text-slate-400 hover:text-rose-600 p-1.5 transition-colors">

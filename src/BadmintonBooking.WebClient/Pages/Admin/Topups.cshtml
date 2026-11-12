@@ -1,0 +1,127 @@
+@page
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Đối soát Chuyển khoản";
+}
+
+<div class="space-y-6">
+    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h2 class="text-xl font-black text-slate-800">Đối soát Chuyển khoản</h2>
+            <p class="text-xs text-slate-500">Đối chiếu sao kê ngân hàng (tài khoản MB nhận tiền) theo <b>mã chuyển khoản</b>, rồi xác nhận. Nạp ví chỉ Admin xác nhận; đơn đặt sân được chủ sân hoặc Admin xác nhận.</p>
+        </div>
+        <button onclick="loadReview()" class="bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-4 py-2 text-xs font-bold text-slate-700">
+            Làm mới
+        </button>
+    </div>
+
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 text-xs p-4 rounded-2xl">
+        Chỉ xác nhận khi đã thấy đúng <b>số tiền</b> và <b>nội dung chuyển khoản</b> (mã CSIDE...) trong sao kê ngân hàng.
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                    <tr class="border-b border-slate-200 bg-slate-50 text-slate-500 font-bold uppercase tracking-wider text-[11px]">
+                        <th class="py-4 px-6">Mã chuyển khoản</th>
+                        <th class="py-4 px-6">Loại</th>
+                        <th class="py-4 px-6">Người chuyển / Cơ sở</th>
+                        <th class="py-4 px-6">Tạo lúc</th>
+                        <th class="py-4 px-6 text-right">Số tiền</th>
+                        <th class="py-4 px-6 text-right">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody id="reviewTbody" class="divide-y divide-slate-100">
+                    <tr>
+                        <td colspan="6" class="py-12 text-center text-slate-400">
+                            <div class="inline-block animate-spin rounded-full h-6 w-6 border-2 border-[#00685f] border-t-transparent"></div>
+                            <p class="mt-2">Đang tải...</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const fmtVnd = n => new Intl.NumberFormat("vi-VN").format(n) + "đ";
+
+    async function loadReview() {
+        const tbody = document.getElementById("reviewTbody");
+        try {
+            const items = await callApi("/api/payments/review");
+            if (!items || items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-12 text-center text-slate-400 text-xs">Không có yêu cầu chuyển khoản nào đang chờ xác nhận.</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(p => {
+                const isTopUp = p.purpose === "TopUp";
+                const type = isTopUp ? "Nạp ví" : `Đặt sân #${p.bookingId}`;
+                const who = isTopUp ? "" : `<div class="text-slate-500">${escapeHtml(p.facilityName || "")}</div>`;
+                return `
+                <tr class="hover:bg-slate-50/70 transition-colors">
+                    <td class="py-4 px-6 font-mono font-bold text-slate-800">${escapeHtml(p.code)}</td>
+                    <td class="py-4 px-6 text-slate-700">${type}</td>
+                    <td class="py-4 px-6"><div class="font-bold text-slate-800">${escapeHtml(p.playerName || "")}</div>${who}</td>
+                    <td class="py-4 px-6 text-slate-600">${new Date(p.createdAt).toLocaleString("vi-VN")}</td>
+                    <td class="py-4 px-6 text-right font-bold text-emerald-700">${fmtVnd(p.amount)}</td>
+                    <td class="py-4 px-6 text-right">
+                        <button onclick="confirmPayment('${escapeHtml(p.code)}')" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-xl font-bold text-xs">
+                            ${isTopUp ? "Đã nhận tiền" : (p.status === "Held" ? "Duyệt đơn" : "Đã nhận tiền")}
+                        </button>
+                        ${isTopUp ? "" : `<button onclick="rejectPayment('${escapeHtml(p.code)}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-xl font-bold text-xs ml-1">Từ chối</button>`}
+                    </td>
+                </tr>`;
+            }).join("");
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-rose-500 text-xs">Lỗi: ${escapeHtml(err.message)}</td></tr>`;
+        }
+    }
+
+    async function confirmPayment(code) {
+        const ok = await Swal.fire({
+            icon: "question",
+            title: "Xác nhận đã nhận tiền?",
+            text: `Mã ${code}. Chỉ xác nhận khi đã đối chiếu được số tiền và nội dung chuyển khoản.`,
+            showCancelButton: true,
+            confirmButtonColor: "#00685f",
+            confirmButtonText: "Xác nhận",
+            cancelButtonText: "Hủy"
+        });
+        if (!ok.isConfirmed) return;
+
+        try {
+            await callApi(`/api/payments/${encodeURIComponent(code)}/confirm`, { method: "POST" });
+            Swal.fire({ icon: "success", title: "Đã xác nhận", timer: 1200, showConfirmButton: false });
+            loadReview();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Không thể xác nhận", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    async function rejectPayment(code) {
+        const ok = await Swal.fire({
+            icon: "warning",
+            title: "Từ chối đơn?",
+            text: "Đơn sẽ bị hủy. Nếu khách đã trừ ví, số tiền sẽ được hoàn về ví.",
+            showCancelButton: true,
+            confirmButtonColor: "#ba1a1a",
+            confirmButtonText: "Từ chối",
+            cancelButtonText: "Quay lại"
+        });
+        if (!ok.isConfirmed) return;
+        try {
+            await callApi(`/api/payments/${encodeURIComponent(code)}/reject`, { method: "POST" });
+            Swal.fire({ icon: "success", title: "Đã từ chối đơn", timer: 1200, showConfirmButton: false });
+            loadReview();
+        } catch (err) {
+            Swal.fire({ icon: "error", title: "Không thể từ chối", text: err.message, confirmButtonColor: "#00685f" });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", loadReview);
+</script>
+}

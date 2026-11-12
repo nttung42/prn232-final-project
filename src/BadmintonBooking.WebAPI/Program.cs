@@ -38,6 +38,8 @@ builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IVietQrService, VietQrService>();
 builder.Services.AddScoped<IStorageService, CloudflareR2StorageService>();
 builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddHostedService<BadmintonBooking.WebAPI.BackgroundJobs.PaymentExpiryService>();
 
 // 4. AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
@@ -58,7 +60,13 @@ builder.Services.AddControllers(options =>
     .SetMaxTop(100));
 
 // 6. JWT Bearer Authentication & Authorization
-var jwtKey = builder.Configuration["Jwt:Key"] ?? "BadmintonBookingSystemSuperSecretKey2026!@#$%^&*()";
+// Khóa ký JWT bắt buộc phải cấu hình (không có giá trị mặc định trong code).
+// Đặt qua biến môi trường: Jwt__Key=<chuỗi bí mật >= 32 ký tự>
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey.Length < 32)
+{
+    throw new InvalidOperationException("Chưa cấu hình Jwt:Key (tối thiểu 32 ký tự). Đặt biến môi trường Jwt__Key.");
+}
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "BadmintonBookingAPI";
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "BadmintonBookingClients";
 
@@ -71,6 +79,19 @@ builder.Services.AddAuthentication(options =>
 {
     options.RequireHttpsMetadata = false;
     options.SaveToken = true;
+    // Đọc JWT từ cookie HttpOnly (WebClient) nếu không có header Authorization
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            if (string.IsNullOrEmpty(context.Token)
+                && context.Request.Cookies.TryGetValue(BadmintonBooking.WebAPI.Controllers.AuthController.AuthCookieName, out var cookieToken))
+            {
+                context.Token = cookieToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -89,12 +110,41 @@ builder.Services.AddAuthorization();
 // 7. CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    // Chỉ cho phép WebClient gọi API (cấu hình Cors:AllowedOrigins). Xác thực bằng Bearer token, không dùng cookie.
+    var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                         ?? new[] { "http://localhost:3456" };
+    options.AddPolicy("AllowWebClient", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials(); // Cookie xác thực
     });
+});
+
+// Rate limit: chống dò mật khẩu và spam đăng nhập (theo IP)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    // Giới hạn chung cho mọi API theo IP (300 request/phút). Lưu trong bộ nhớ: phù hợp một instance.
+    options.GlobalLimiter = System.Threading.RateLimiting.PartitionedRateLimiter.Create<HttpContext, string>(context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
+    options.AddPolicy("login", context =>
+        System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
+            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0
+            }));
 });
 
 // 8. Swagger / OpenAPI with JWT Support
@@ -144,7 +194,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<AppDbContext>();
         logger.LogInformation("Initializing Database and Applying Migrations / Seeding...");
-        await DbInitializer.SeedAsync(context);
+        await DbInitializer.SeedAsync(context, builder.Configuration);
         logger.LogInformation("Database initialized and seeded successfully.");
     }
     catch (Exception ex)
@@ -154,7 +204,8 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment() || true) // Enable swagger for testing
+// Swagger chỉ bật khi môi trường Development
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -164,8 +215,28 @@ if (app.Environment.IsDevelopment() || true) // Enable swagger for testing
     });
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowWebClient");
 app.UseStaticFiles();
+app.UseRateLimiter();
+
+// Chống CSRF: mọi request thay đổi dữ liệu phải kèm header X-Requested-With: CourtSideWeb.
+// Form HTML thông thường (cross-site) không thể gắn header này; CORS đã chặn origin lạ.
+app.Use(async (context, next) =>
+{
+    var method = context.Request.Method;
+    // Webhook SePay không gửi header CSRF; endpoint này tự xác thực bằng API key
+    var isSepayWebhook = context.Request.Path.Equals(BadmintonBooking.WebAPI.Controllers.PaymentsController.SepayWebhookPath, StringComparison.OrdinalIgnoreCase);
+    if (!isSepayWebhook && (HttpMethods.IsPost(method) || HttpMethods.IsPut(method) || HttpMethods.IsDelete(method) || HttpMethods.IsPatch(method)))
+    {
+        if (!context.Request.Headers.TryGetValue("X-Requested-With", out var marker) || marker != "CourtSideWeb")
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsJsonAsync(new { success = false, message = "Yêu cầu không hợp lệ (thiếu header bảo vệ CSRF)." });
+            return;
+        }
+    }
+    await next();
+});
 
 app.UseAuthentication();
 app.UseAuthorization();

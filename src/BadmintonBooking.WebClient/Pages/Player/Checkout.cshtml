@@ -32,7 +32,7 @@
             <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 space-y-4">
                 <div class="flex items-center justify-between pb-4 border-b border-slate-100">
                     <h2 class="text-base font-black text-slate-800">Thông tin Đơn đặt sân</h2>
-                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Đang giữ chỗ</span>
+                    <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-2.5 py-1 rounded-full">Chờ xác nhận</span>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -71,7 +71,7 @@
                             <span class="material-symbols-outlined text-[#00685f] text-[24px]">qr_code_2</span>
                             <div>
                                 <span class="font-bold text-xs text-slate-800 block">Chuyển khoản VietQR / Napas 247</span>
-                                <span class="text-[10px] text-slate-500">Tự động đối soát đơn trong 1 phút</span>
+                                <span class="text-[10px] text-slate-500">Chủ sân xác nhận sau khi nhận tiền</span>
                             </div>
                         </div>
                         <input type="radio" name="payMethod" value="QR" checked class="text-[#00685f]" />
@@ -81,8 +81,8 @@
                         <div class="flex items-center gap-3">
                             <span class="material-symbols-outlined text-[#00685f] text-[24px]">account_balance_wallet</span>
                             <div>
-                                <span class="font-bold text-xs text-slate-800 block">Ví CourtSide (Số dư: 1.250.000đ)</span>
-                                <span class="text-[10px] text-emerald-600 font-semibold">Ưu đãi giảm thêm 5% cước sân</span>
+                                <span class="font-bold text-xs text-slate-800 block">Ví CourtSide (Số dư: <span id="walletBalanceText">đang tải...</span>)</span>
+                                <span class="text-[10px] text-slate-500 font-semibold">Trừ trực tiếp từ số dư ví, đơn được xác nhận ngay</span>
                             </div>
                         </div>
                         <input type="radio" name="payMethod" value="Wallet" class="text-[#00685f]" />
@@ -140,7 +140,7 @@
                     </div>
                     <div class="mt-3 text-[10px] text-rose-500 font-semibold flex items-center gap-1">
                         <span class="material-symbols-outlined text-[14px]">timer</span>
-                        <span>Thời gian giữ chỗ còn: <strong id="countdown">09:59</strong></span>
+                        <span>Vui lòng hoàn tất trong: <strong id="countdown">09:59</strong></span>
                     </div>
                 </div>
 
@@ -182,9 +182,12 @@
         document.getElementById("summaryBasePrice").textContent = formatCurrency(price);
         document.getElementById("summaryTotalPrice").textContent = formatCurrency(price);
 
-        const randomRef = Math.floor(1000 + Math.random() * 9000);
-        document.getElementById("refCode").textContent = randomRef;
-        document.getElementById("vietqrImg").src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=COURTSIDE-BK${randomRef}-${price}`;
+        // Số dư ví thật của người chơi
+        loadWalletBalance();
+
+        // Mã chuyển khoản chỉ được tạo từ server sau khi đặt đơn (xem confirmBooking)
+        document.getElementById("refCode").textContent = "—";
+        document.getElementById("vietqrImg").removeAttribute("src");
 
         // Countdown timer 10 phút
         let timeLeft = 600;
@@ -208,7 +211,87 @@
         }, 1000);
     });
 
+    let walletBalance = null;
+
+    // Hiển thị mã và QR chuyển khoản của đơn, rồi chờ server xác nhận (webhook SePay).
+    function showBankPaymentAndWait(pay, bookingId) {
+        document.getElementById("refCode").textContent = pay.code;
+        document.getElementById("vietqrImg").src = pay.qrUrl;
+        let timer = null;
+        let finished = false;
+        const stop = () => { if (timer) clearInterval(timer); timer = null; };
+
+        const check = async () => {
+            try {
+                const status = await callApi(`/api/payments/${encodeURIComponent(pay.code)}/status`);
+                if (status.status === "Paid") {
+                    finished = true;
+                    stop();
+                    Swal.close();
+                    Swal.fire({
+                        icon: "success",
+                        title: "Đặt sân thành công!",
+                        text: `Đã nhận thanh toán. Mã đơn #BK-${bookingId} đã được xác nhận.`,
+                        confirmButtonColor: "#00685f"
+                    }).then(() => { window.location.href = "/Player/MyBookings"; });
+                } else if (status.status === "Expired") {
+                    finished = true;
+                    stop();
+                    Swal.close();
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Hết thời gian thanh toán",
+                        text: "Đơn đã bị hủy do chưa nhận được tiền. Vui lòng đặt lại.",
+                        confirmButtonColor: "#00685f"
+                    }).then(() => { window.location.href = "/Player/MyBookings"; });
+                }
+            } catch (e) { /* lỗi mạng tạm thời: thử lại */ }
+        };
+
+        Swal.fire({
+            title: "Chuyển khoản để xác nhận đơn",
+            html: `
+                <img src="${pay.qrUrl}" alt="QR chuyển khoản" style="width:220px;height:220px;margin:0 auto 12px;">
+                <div style="text-align:left;font-size:13px;line-height:1.7">
+                    <div>Ngân hàng: <b>${pay.bankId}</b></div>
+                    <div>Số tài khoản: <b>${pay.accountNo}</b></div>
+                    <div>Số tiền: <b>${new Intl.NumberFormat("vi-VN").format(pay.amount)}đ</b></div>
+                    <div>Nội dung (bắt buộc): <b style="font-family:monospace">${pay.transferContent}</b></div>
+                </div>
+                <p style="margin-top:10px;font-size:12px;color:#64748b">Chủ sân sẽ xác nhận đơn sau khi nhận được tiền. Trang này sẽ tự cập nhật.</p>`,
+            showConfirmButton: false,
+            showCloseButton: true,
+            allowOutsideClick: false,
+            didOpen: () => { timer = setInterval(check, 3000); },
+            willClose: () => stop()
+        }).then(r => {
+            if (!finished && r.dismiss === Swal.DismissReason.close) window.location.href = "/Player/MyBookings";
+        });
+    }
+
+    async function loadWalletBalance() {
+        try {
+            const wallet = await callApi("/api/wallet/me");
+            walletBalance = Number(wallet.balance);
+            document.getElementById("walletBalanceText").textContent = formatCurrency(walletBalance);
+        } catch (e) {
+            document.getElementById("walletBalanceText").textContent = "không tải được";
+        }
+    }
+
     async function confirmBooking() {
+        const method = document.querySelector('input[name="payMethod"]:checked').value;
+
+        if (method === "Wallet" && walletBalance !== null && walletBalance < price) {
+            Swal.fire({
+                icon: "warning",
+                title: "Số dư ví không đủ",
+                text: `Số dư hiện có ${formatCurrency(walletBalance)}, cần ${formatCurrency(price)}. Vui lòng nạp thêm hoặc chọn phương thức khác.`,
+                confirmButtonColor: "#00685f"
+            });
+            return;
+        }
+
         const btn = document.getElementById("btnConfirmBooking");
         btn.disabled = true;
         btn.innerHTML = `
@@ -224,15 +307,47 @@
                 note: document.getElementById("checkoutNote").value.trim() || "Đặt sân trên CourtSide"
             };
 
-            const res = await callApi("/api/bookings", {
+            // API trả về ApiResponse { success, message, data }
+            const res = (await callApi("/api/bookings", {
                 method: "POST",
                 data: bookingPayload
-            });
+            })).data;
+
+            // Chuyển khoản QR: server tạo mã thanh toán riêng cho đơn; đơn xác nhận khi webhook khớp mã
+            if (method === "QR") {
+                const pay = await callApi(`/api/payments/booking/${res.id}`, { method: "POST" });
+                showBankPaymentAndWait(pay, res.id); // nút giữ khóa để không tạo đơn trùng
+                return;
+            }
+
+            // Thanh toán bằng ví: trừ tiền ngay, đơn được xác nhận
+            if (method === "Wallet") {
+                try {
+                    await callApi("/api/wallet/pay-booking", {
+                        method: "POST",
+                        data: { bookingId: res.id }
+                    });
+                    Swal.fire({
+                        icon: "success",
+                        title: "Đã trừ ví, chờ xác nhận",
+                        text: `Mã đơn: #BK-${res.id}. Đã giữ tiền trong ví; chủ sân sẽ xác nhận đơn. Nếu bị từ chối, tiền sẽ hoàn về ví.`,
+                        confirmButtonColor: "#00685f"
+                    }).then(() => { window.location.href = "/Player/MyBookings"; });
+                } catch (payErr) {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Đơn đã tạo nhưng chưa thanh toán",
+                        text: `${payErr.message}. Đơn #BK-${res.id} đang chờ thanh toán trong "Lịch đặt của tôi".`,
+                        confirmButtonColor: "#00685f"
+                    }).then(() => { window.location.href = "/Player/MyBookings"; });
+                }
+                return;
+            }
 
             Swal.fire({
                 icon: "success",
                 title: "Đặt sân thành công!",
-                text: `Mã đơn đặt: #BK-${res.id}. Trạng thái: ${res.status}. Vui lòng theo dõi trong mục 'Lịch đặt của tôi'.`,
+                text: `Mã đơn đặt: #BK-${res.id}. Trạng thái: ${res.status}. Vui lòng chuyển khoản hoặc thanh toán tại quầy để chủ sân xác nhận.`,
                 confirmButtonColor: "#00685f"
             }).then(() => {
                 window.location.href = "/Player/MyBookings";

@@ -29,11 +29,11 @@
                     <div class="flex items-center gap-2 mb-2">
                         <span class="px-3 py-1 rounded-full bg-[#6df5e1] text-[#004d46] text-[10px] uppercase font-bold flex items-center gap-1 shadow-sm">
                             <span class="material-symbols-outlined text-[14px]">verified</span>
-                            <span>Chuẩn thi đấu BWF</span>
+                            <span>Cơ sở đã được duyệt</span>
                         </span>
                         <span class="px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-800 text-[10px] font-bold flex items-center gap-1 shadow-sm">
                             <span class="material-symbols-outlined text-amber-500 text-[14px]">star</span>
-                            <span>4.9 (240 đánh giá)</span>
+                            <span>Chưa có đánh giá</span>
                         </span>
                     </div>
                     <h1 class="text-3xl lg:text-4xl font-black text-white tracking-tight" id="facilityTitle">...</h1>
@@ -99,7 +99,7 @@
                 </div>
                 <div>
                     <span class="text-[10px] font-bold uppercase text-slate-400 block">Giá thuê tham khảo</span>
-                    <span class="text-sm font-black text-[#00685f]">80.000đ - 160.000đ</span>
+                    <span class="text-sm font-black text-[#00685f]" id="specPriceRange">đang tải...</span>
                     <span class="text-[11px] text-slate-400 block">Theo ca & giờ vàng</span>
                 </div>
             </div>
@@ -127,29 +127,10 @@
             </div>
         </div>
 
-        <!-- Amenities Badges -->
+        <!-- Tiện ích: chưa có dữ liệu thật từ hệ thống nên không hiển thị danh sách cố định -->
         <div class="flex flex-wrap items-center gap-2.5 bg-slate-50 p-4 rounded-2xl border border-slate-200">
             <span class="text-xs font-bold text-slate-700 mr-2">Tiện ích sân:</span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
-                <span class="material-symbols-outlined text-[#00685f] text-[16px]">sports_tennis</span>
-                Thảm PVC chuẩn BWF (5mm)
-            </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
-                <span class="material-symbols-outlined text-[#00685f] text-[16px]">ac_unit</span>
-                Máy lạnh toàn phần 25°C
-            </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
-                <span class="material-symbols-outlined text-[#00685f] text-[16px]">wifi</span>
-                Wifi miễn phí
-            </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
-                <span class="material-symbols-outlined text-[#00685f] text-[16px]">local_parking</span>
-                Bãi xe ô tô rộng rãi
-            </span>
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 text-xs font-medium shadow-xs border border-slate-100">
-                <span class="material-symbols-outlined text-[#00685f] text-[16px]">local_drink</span>
-                Căng tin & Thuê vợt
-            </span>
+            <span class="text-xs text-slate-500">Chủ sân chưa cập nhật tiện ích.</span>
         </div>
 
         <!-- Interactive Live Booking Matrix Section -->
@@ -279,7 +260,8 @@
         }
 
         try {
-            currentFacility = await callApi(`/api/facilities/${facilityId}`);
+            // API trả về ApiResponse { success, message, data }
+            currentFacility = (await callApi(`/api/facilities/${facilityId}`)).data;
             document.getElementById("breadFacilityName").textContent = currentFacility.name;
             document.getElementById("facilityTitle").textContent = currentFacility.name;
             document.getElementById("facilityFullAddress").querySelector("span:last-child").textContent = `${currentFacility.address}, ${currentFacility.district}`;
@@ -314,7 +296,17 @@
         try {
             const courts = await callApi(`/api/courts?$filter=FacilityId eq ${facilityId} and Status eq 'Active'`);
             const slots = await callApi(`/api/timeslots?$filter=FacilityId eq ${facilityId} and IsActive eq true&$orderby=StartTime asc`);
-            const booked = await callApi(`/api/bookings?$filter=PlayDate eq ${selectedDate} and (Status eq 'Confirmed' or Status eq 'Pending')`);
+            if (slots.length > 0) {
+                const prices = slots.map(s => Number(s.price));
+                const lo = formatCurrency(Math.min(...prices)), hi = formatCurrency(Math.max(...prices));
+                document.getElementById("specPriceRange").textContent = lo === hi ? lo : `${lo} - ${hi}`;
+            } else {
+                document.getElementById("specPriceRange").textContent = "Chưa có bảng giá";
+            }
+            // /api/bookings yêu cầu đăng nhập; khách chưa đăng nhập không có dữ liệu trạng thái "Đã đặt"
+            const booked = AuthManager.isAuthenticated()
+                ? await callApi(`/api/bookings?$filter=PlayDate eq ${selectedDate} and (Status eq 'Confirmed' or Status eq 'Pending')`)
+                : [];
 
             if (courts.length === 0 || slots.length === 0) {
                 tableDiv.innerHTML = `<div class="py-12 text-center text-slate-400 text-xs">Cơ sở này chưa cấu hình danh sách sân con hoặc khung giờ.</div>`;
@@ -346,8 +338,8 @@
                 html += `
                     <tr>
                         <td class="py-3.5 px-4 font-bold text-slate-800 bg-slate-50/40">
-                            <div>${c.courtName}</div>
-                            <div class="text-[10px] text-slate-400 font-normal">${c.courtType}</div>
+                            <div>${escapeHtml(c.courtName)}</div>
+                            <div class="text-[10px] text-slate-400 font-normal">${escapeHtml(c.courtType)}</div>
                         </td>
                 `;
 
@@ -365,7 +357,10 @@
                         html += `
                             <td class="p-1.5 text-center">
                                 <button type="button" 
-                                        onclick="pickSlot(${c.id}, '${c.courtName}', ${s.id}, '${s.slotName} (${formatTime(s.startTime)}-${formatTime(s.endTime)})', ${s.price}, this)"
+                                        onclick="pickSlot(this)"
+                                        data-court-id="${c.id}" data-court-name="${escapeHtml(c.courtName)}"
+                                        data-slot-id="${s.id}" data-slot-name="${escapeHtml(`${s.slotName} (${formatTime(s.startTime)}-${formatTime(s.endTime)})`)}"
+                                        data-price="${s.price}"
                                         class="matrix-slot-btn w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#00685f] text-[11px] font-bold border border-emerald-200 transition-all">
                                     ${formatCurrency(s.price)}
                                 </button>
@@ -385,7 +380,12 @@
         }
     }
 
-    function pickSlot(courtId, courtName, slotId, slotName, price, btn) {
+    function pickSlot(btn) {
+        const courtId = Number(btn.dataset.courtId);
+        const courtName = btn.dataset.courtName;
+        const slotId = Number(btn.dataset.slotId);
+        const slotName = btn.dataset.slotName;
+        const price = Number(btn.dataset.price);
         selectedCourtId = courtId;
         selectedCourtName = courtName;
         selectedSlotId = slotId;

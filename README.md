@@ -10,7 +10,7 @@
 | Thành phần | Công nghệ / Thư viện |
 | :--- | :--- |
 | **Backend** | .NET 8.0 Web API, Entity Framework Core 8.0 (Code First, SQL Server), OData v8 |
-| **Bảo mật** | JWT Bearer Authentication, BCrypt.Net-Next (mã hóa mật khẩu) |
+| **Bảo mật** | JWT (lưu trong cookie HttpOnly), BCrypt.Net-Next (mã hóa mật khẩu), chống CSRF bằng header, giới hạn tốc độ, chống XSS. Chi tiết: `docs/04-thanh-toan-va-bao-mat.md` |
 | **Tích hợp** | VietQR (chuẩn Napas247 QuickLink), Cloudflare R2 Storage (AWS S3 SDK) |
 | **Frontend** | ASP.NET Core Razor Pages 8.0, Tailwind CSS, Lucide Icons, JavaScript (Fetch API) |
 | **Định dạng dữ liệu** | Content Negotiation (JSON, CSV, XML) qua HTTP Accept Headers |
@@ -59,20 +59,26 @@ BadmintonBookingSystem/
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - Microsoft SQL Server (LocalDB hoặc SQL Server 2019/2022)
 
-### 2. Cấu hình Connection String
-Mở file `src/BadmintonBooking.WebAPI/appsettings.json` và cập nhật chuỗi kết nối SQL Server nếu cần:
-```json
-"ConnectionStrings": {
-  "DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=BadmintonBookingDb;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
-}
+### 2. Cấu hình bí mật (biến môi trường)
+Không lưu mật khẩu hay khóa bí mật trong file cấu hình. Đặt qua biến môi trường trước khi chạy:
+
+```bash
+# Chuỗi kết nối SQL Server (ví dụ LocalDB hoặc container)
+ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=BadmintonBookingDB;User Id=sa;Password=<mật khẩu>;TrustServerCertificate=True;MultipleActiveResultSets=true"
+
+# Khóa ký JWT (bắt buộc, tối thiểu 32 ký tự). API sẽ không khởi động nếu thiếu.
+Jwt__Key="<chuỗi ngẫu nhiên dài >= 32 ký tự>"
 ```
+
+Các origin được phép gọi API nằm ở `Cors:AllowedOrigins` trong `appsettings.json` (mặc định `http://localhost:3456`).
+Swagger chỉ bật khi `ASPNETCORE_ENVIRONMENT=Development`.
 
 ### 3. Chạy Backend (WebAPI)
 Tại thư mục gốc dự án:
 ```bash
 dotnet run --project src/BadmintonBooking.WebAPI
 ```
-- **Swagger UI**: [http://localhost:6789](http://localhost:6789)
+- **Swagger UI** (chỉ khi `ASPNETCORE_ENVIRONMENT=Development`): [http://localhost:6789](http://localhost:6789)
 - Khi khởi động lần đầu, hệ thống sẽ **tự động áp dụng Migration và Seed dữ liệu mẫu**.
 
 ### 4. Chạy Frontend (WebClient)
@@ -86,8 +92,10 @@ dotnet run --project src/BadmintonBooking.WebClient
 
 ## 👥 Tài khoản thử nghiệm (Demo Accounts)
 
-| Vai trò | Email đăng nhập | Mật khẩu mặc định |
+| Vai trò | Email đăng nhập | Mật khẩu |
 | :--- | :--- | :--- |
 | **Quản trị viên (Admin)** | `admin@badminton.com` | `Admin@123` |
 | **Chủ sân (Provider)** | `provider1@badminton.com` | `Provider@123` |
 | **Người chơi (Player)** | `player1@badminton.com` | `Player@123` |
+
+Mật khẩu demo dùng cho môi trường local. Có thể ghi đè khi seed bằng `Seed:AdminPassword`, `Seed:ProviderPassword`, `Seed:PlayerPassword` (biến môi trường `Seed__...`). Mật khẩu chỉ được áp dụng khi database chưa có user.

@@ -92,3 +92,9 @@ Thumbs.db
 ehthumbs.db
 [Dd]esktop.ini
 $RECYCLE.BIN/
+
+# Biến môi trường local
+.env
+
+# File upload test cục bộ
+src/BadmintonBooking.WebAPI/wwwroot/uploads/
